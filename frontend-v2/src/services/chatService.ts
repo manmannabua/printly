@@ -14,6 +14,12 @@ export async function startInternal(storeId: string): Promise<ChatConversation> 
   return res.data.data
 }
 
+/** Find (or create) the store-side per-order conversation for a given order. */
+export async function getOrderConversation(orderId: string): Promise<ChatConversation> {
+  const res = await api.get<ApiResponse<ChatConversation>>(`/api/v1/chat/conversations/by-order/${orderId}`)
+  return res.data.data
+}
+
 export async function getMessages(
   conversationId: string,
   params?: { before_id?: string, limit?: number },

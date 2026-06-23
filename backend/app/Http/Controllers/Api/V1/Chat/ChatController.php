@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Chat;
 use App\Http\Controllers\Api\V1\BaseController;
 use App\Models\ChatConversation;
 use App\Models\ChatMessage;
+use App\Models\Order;
 use App\Models\Store;
 use App\Services\ChatService;
 use Illuminate\Http\JsonResponse;
@@ -37,6 +38,25 @@ class ChatController extends BaseController
         $conversation = $this->chat->ensureInternalConversation($store)->load('store', 'order');
 
         return $this->success($this->chat->presentConversation($conversation, $request->user()));
+    }
+
+    /**
+     * GET /chat/conversations/by-order/{orderId} — the store-side per-order
+     * thread, ensured on demand so the queue board can open a chat for any order
+     * (even one the customer hasn't messaged yet).
+     */
+    public function byOrder(Request $request, string $orderId): JsonResponse
+    {
+        $order = Order::findOrFail($orderId);
+        $user = $request->user();
+
+        if (! $user->is_admin && ! $user->belongsToStore($order->store_id)) {
+            return $this->error('Forbidden.', 403);
+        }
+
+        $conversation = $this->chat->ensureOrderConversation($order)->load('store', 'order');
+
+        return $this->success($this->chat->presentConversation($conversation, $user));
     }
 
     /** GET /chat/conversations/{id}/messages */

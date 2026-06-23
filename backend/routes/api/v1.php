@@ -62,6 +62,7 @@ Route::prefix('my/notifications')->name('notifications.')->group(function () {
 Route::prefix('chat')->name('chat.')->group(function () {
     Route::get('conversations', [ChatController::class, 'index'])->name('index');
     Route::post('conversations', [ChatController::class, 'startInternal'])->name('start');
+    Route::get('conversations/by-order/{orderId}', [ChatController::class, 'byOrder'])->name('by-order');
     Route::get('conversations/{id}/messages', [ChatController::class, 'messages'])->name('messages');
     Route::post('conversations/{id}/messages', [ChatController::class, 'send'])->name('send');
     Route::post('conversations/{id}/read', [ChatController::class, 'markRead'])->name('read');
