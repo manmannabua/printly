@@ -22,6 +22,10 @@ class UpdateStoreRequest extends BaseRequest
             'lng' => ['nullable', 'numeric', 'between:-180,180'],
             'address' => ['nullable', 'string', 'max:255'],
             'settings' => ['nullable', 'array'],
+            // Store-owned PayMongo credentials (stored encrypted, never returned).
+            'paymongo_secret_key' => ['nullable', 'string', 'max:255'],
+            'paymongo_webhook_secret' => ['nullable', 'string', 'max:255'],
+            'payments_enabled' => ['nullable', 'boolean'],
         ];
     }
 }

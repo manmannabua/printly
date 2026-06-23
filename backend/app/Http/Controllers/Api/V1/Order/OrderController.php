@@ -9,14 +9,20 @@ use App\Http\Resources\OrderResource;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderEvent;
+use App\Models\Payment;
 use App\Models\Store;
 use App\Services\OrderService;
+use App\Services\PaymongoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends BaseController
 {
-    public function __construct(private readonly OrderService $orders) {}
+    public function __construct(
+        private readonly OrderService $orders,
+        private readonly PaymongoService $paymongo,
+    ) {}
 
     /**
      * The store queue board: orders filtered by status.
@@ -67,15 +73,41 @@ class OrderController extends BaseController
     {
         $this->ensureOwned($store, $order);
 
+        $reason = $request->input('reason');
         $order = $this->orders->transition(
             $order,
             $request->validated()['status'],
             OrderEvent::ACTOR_STAFF,
             $request->user()?->id,
-            array_filter(['reason' => $request->input('reason')]),
+            array_filter(['reason' => $reason]),
         );
 
+        if ($order->status === Order::STATUS_REFUNDED) {
+            $this->refundIfPaid($order, $reason);
+        }
+
         return $this->success(new OrderResource($order->fresh(['items', 'events'])), 'Order updated.');
+    }
+
+    /**
+     * Best-effort PayMongo refund when an order is marked refunded. The status
+     * change already succeeded; a PSP hiccup is logged, not surfaced as a 500.
+     */
+    private function refundIfPaid(Order $order, ?string $reason): void
+    {
+        $payment = Payment::where('order_id', $order->id)
+            ->where('status', Payment::STATUS_PAID)
+            ->first();
+
+        if (! $payment) {
+            return;
+        }
+
+        try {
+            $this->paymongo->refund($payment, $payment->amount_cents, $reason);
+        } catch (\Throwable $e) {
+            Log::error('PayMongo refund failed', ['order' => $order->code, 'error' => $e->getMessage()]);
+        }
     }
 
     /**

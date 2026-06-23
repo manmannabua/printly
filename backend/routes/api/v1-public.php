@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Storefront\StorefrontController;
 use App\Http\Controllers\Api\V1\Storefront\StorefrontFileController;
 use App\Http\Controllers\Api\V1\Storefront\StorefrontOrderController;
 use App\Http\Controllers\Api\V1\Storefront\StorefrontQuoteController;
+use App\Http\Controllers\Api\V1\Webhooks\PaymongoWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -46,3 +47,6 @@ Route::middleware('throttle:storefront-write')->group(function () {
     Route::post('s/{slug}/files', [StorefrontFileController::class, 'store'])->name('storefront.files.store');
     Route::post('s/{slug}/orders', [StorefrontOrderController::class, 'store'])->name('storefront.orders.store');
 });
+
+// PayMongo webhook (per store — each store uses its own account). Signature-verified.
+Route::post('webhooks/paymongo/{store}', PaymongoWebhookController::class)->name('webhooks.paymongo');

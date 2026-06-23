@@ -240,6 +240,12 @@ async function placeOrder(): Promise<void> {
       items: cart.value.map(l => l.item),
     })
     cart.value = []
+    // Online payment: hand off to the PayMongo checkout. The success_url returns
+    // the customer to the order-status page.
+    if (order.checkout_url) {
+      window.location.href = order.checkout_url
+      return
+    }
     router.push({ name: 'order-status', params: { code: order.code } })
   } catch (err) {
     toast.error(getErrorMessage(err))

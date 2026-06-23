@@ -6,17 +6,25 @@ use App\Http\Controllers\Api\V1\BaseController;
 use App\Http\Controllers\Api\V1\Storefront\Concerns\ResolvesStorefront;
 use App\Http\Requests\Storefront\PlaceOrderRequest;
 use App\Models\Customer;
+use App\Models\Order;
 use App\Models\OrderEvent;
 use App\Models\Product;
 use App\Services\OrderService;
+use App\Services\PaymongoService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class StorefrontOrderController extends BaseController
 {
     use ResolvesStorefront;
 
-    public function __construct(private readonly OrderService $orders) {}
+    private const ONLINE_METHODS = ['gcash', 'card', 'maya'];
+
+    public function __construct(
+        private readonly OrderService $orders,
+        private readonly PaymongoService $paymongo,
+    ) {}
 
     /**
      * Guest checkout (planning §7, POST /s/{slug}/orders). Creates a
@@ -38,12 +46,35 @@ class StorefrontOrderController extends BaseController
             'notes' => $data['notes'] ?? null,
         ]);
 
+        $checkoutUrl = $this->maybeCreateCheckout($store, $order, $data['pay_method'] ?? null);
+
         return $this->success([
             'code' => $order->code,
             'status' => $order->status,
             'payment_status' => $order->payment_status,
             'total_cents' => $order->total_cents,
+            'checkout_url' => $checkoutUrl,
         ], 'Order placed.', 201);
+    }
+
+    /**
+     * For online methods on a payment-enabled store, open a PayMongo checkout.
+     * A PSP failure must not lose the order — it stays pending_payment and the
+     * customer can be sent a fresh link, so we degrade to a null checkout URL.
+     */
+    private function maybeCreateCheckout(\App\Models\Store $store, Order $order, ?string $payMethod): ?string
+    {
+        if (! in_array($payMethod, self::ONLINE_METHODS, true) || ! $store->acceptsOnlinePayments()) {
+            return null;
+        }
+
+        try {
+            return $this->paymongo->createCheckout($order)->checkout_url;
+        } catch (\Throwable $e) {
+            Log::error('PayMongo checkout creation failed', ['order' => $order->code, 'error' => $e->getMessage()]);
+
+            return null;
+        }
     }
 
     /**

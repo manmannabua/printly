@@ -185,6 +185,7 @@ export interface PlacedOrder {
   status: OrderStatus
   payment_status: string
   total_cents: number
+  checkout_url?: string | null
 }
 
 export interface PublicOrder {

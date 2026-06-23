@@ -95,4 +95,9 @@ class Order extends Model
     {
         return $this->hasManyThrough(OrderFile::class, OrderItem::class);
     }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
 }
