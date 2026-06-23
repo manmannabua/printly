@@ -1,35 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useDarkMode } from '@/composables/useDarkMode'
 import { useToast } from '@/composables/useToast'
 import { getErrorMessage } from '@/services/api'
 import * as authService from '@/services/authService'
-import AppModal from '@/components/ui/AppModal.vue'
+import AppCard from '@/components/ui/AppCard.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppInput from '@/components/ui/AppInput.vue'
-import AppToggle from '@/components/ui/AppToggle.vue'
-import AppAvatar from '@/components/ui/AppAvatar.vue'
-import AppIcon from '@/components/common/AppIcon.vue'
-
-defineProps<{ modelValue: boolean }>()
-const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 
 const auth = useAuthStore()
-const router = useRouter()
 const toast = useToast()
-const { isDark, toggle: toggleDark } = useDarkMode()
-
-const TABS = [
-  { key: 'general', label: 'General', icon: 'settings' },
-  { key: 'security', label: 'Security', icon: 'shield-check' },
-] as const
-const activeTab = ref<'general' | 'security'>('general')
-
-function close(): void {
-  emit('update:modelValue', false)
-}
 
 // ── Change password ────────────────────────────────────────────────────────
 const pw = ref({ current_password: '', new_password: '', new_password_confirmation: '' })
@@ -80,56 +60,13 @@ async function submitPin(): Promise<void> {
     pinSaving.value = false
   }
 }
-
-// ── Logout ─────────────────────────────────────────────────────────────────
-async function handleLogout(): Promise<void> {
-  await auth.logout()
-  close()
-  router.push({ name: 'login' })
-}
 </script>
 
 <template>
-  <AppModal :model-value="modelValue" title="Settings" size="lg" @update:model-value="emit('update:modelValue', $event)">
-    <!-- Identity header -->
-    <div class="mb-5 flex items-center gap-3 border-b border-gray-100 pb-4 dark:border-gray-700">
-      <AppAvatar :name="auth.user?.email" size="lg" />
-      <div class="min-w-0">
-        <p class="truncate font-medium text-gray-900 dark:text-gray-100">{{ auth.user?.email }}</p>
-        <p class="text-xs capitalize text-gray-400">{{ auth.primaryRole ?? 'User' }}</p>
-      </div>
-    </div>
-
-    <!-- Tabs -->
-    <div class="mb-5 flex gap-1 rounded-lg border border-gray-200 p-1 dark:border-gray-700">
-      <button
-        v-for="tab in TABS"
-        :key="tab.key"
-        class="flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition"
-        :class="activeTab === tab.key ? 'bg-primary-600 text-white' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'"
-        @click="activeTab = tab.key"
-      >
-        <AppIcon :name="tab.icon" :size="16" />
-        {{ tab.label }}
-      </button>
-    </div>
-
-    <!-- General -->
-    <div v-if="activeTab === 'general'" class="space-y-4">
-      <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-        <AppToggle
-          :model-value="isDark"
-          label="Dark mode"
-          description="Switch between light and dark appearance."
-          @update:model-value="toggleDark"
-        />
-      </div>
-    </div>
-
-    <!-- Security -->
-    <div v-else class="space-y-6">
-      <!-- Change password -->
-      <form class="space-y-3" @submit.prevent="submitPassword">
+  <div class="grid gap-5 lg:grid-cols-2">
+    <!-- Change password -->
+    <AppCard>
+      <form class="space-y-3 p-4" @submit.prevent="submitPassword">
         <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Change password</h4>
         <AppInput v-model="pw.current_password" type="password" label="Current password" autocomplete="current-password" required />
         <AppInput v-model="pw.new_password" type="password" label="New password" autocomplete="new-password" required />
@@ -137,9 +74,11 @@ async function handleLogout(): Promise<void> {
         <p v-if="pwError" class="text-xs text-danger-600">{{ pwError }}</p>
         <AppButton type="submit" size="sm" icon="check" :loading="pwSaving">Update password</AppButton>
       </form>
+    </AppCard>
 
-      <!-- Security PIN -->
-      <form class="space-y-3 border-t border-gray-100 pt-5 dark:border-gray-700" @submit.prevent="submitPin">
+    <!-- Security PIN -->
+    <AppCard>
+      <form class="space-y-3 p-4" @submit.prevent="submitPin">
         <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
           {{ auth.hasSecurityPin ? 'Change security PIN' : 'Set a security PIN' }}
         </h4>
@@ -161,13 +100,6 @@ async function handleLogout(): Promise<void> {
         <p v-if="pinError" class="text-xs text-danger-600">{{ pinError }}</p>
         <AppButton type="submit" size="sm" icon="check" :loading="pinSaving">Save PIN</AppButton>
       </form>
-    </div>
-
-    <template #footer>
-      <AppButton variant="ghost" icon="log-out" class="!text-danger-600" @click="handleLogout">
-        Log out
-      </AppButton>
-      <AppButton variant="secondary" @click="close">Close</AppButton>
-    </template>
-  </AppModal>
+    </AppCard>
+  </div>
 </template>

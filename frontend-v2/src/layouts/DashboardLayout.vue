@@ -1,12 +1,20 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useDarkMode } from '@/composables/useDarkMode'
 import AppIcon from '@/components/common/AppIcon.vue'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import NotificationBell from '@/components/notifications/NotificationBell.vue'
-import UserSettingsModal from '@/components/settings/UserSettingsModal.vue'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface NavItem {
   label: string
@@ -20,11 +28,11 @@ interface NavGroup {
 }
 
 const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 const { isDark, toggle: toggleDark } = useDarkMode()
 
 const sidebarOpen = ref(false)
-const settingsOpen = ref(false)
 
 // NOTE: Printly domain nav (Orders/Queue, Catalog, Customers, Payments) is
 // added as those modules land — see planning/01-data-model-and-architecture.md.
@@ -66,6 +74,11 @@ function isActive(to: string): boolean {
 }
 
 const roleLabel = computed(() => authStore.primaryRole ?? 'User')
+
+async function handleLogout(): Promise<void> {
+  await authStore.logout()
+  router.push({ name: 'login' })
+}
 </script>
 
 <template>
@@ -110,19 +123,49 @@ const roleLabel = computed(() => authStore.primaryRole ?? 'User')
         </div>
       </nav>
 
-      <!-- Footer: user avatar → settings modal -->
+      <!-- Footer: user avatar → dropdown menu -->
       <div class="border-t border-gray-200 p-3 dark:border-gray-800">
-        <button
-          class="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
-          @click="settingsOpen = true"
-        >
-          <AppAvatar :name="authStore.user?.email" size="sm" />
-          <span class="min-w-0 flex-1">
-            <span class="block truncate text-sm font-medium text-gray-900 dark:text-gray-100">{{ authStore.user?.email }}</span>
-            <span class="block truncate text-xs capitalize text-gray-400">{{ roleLabel }}</span>
-          </span>
-          <AppIcon name="settings" :size="16" class="shrink-0 text-gray-400" />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <button
+              class="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-gray-100 data-[state=open]:bg-gray-100 dark:hover:bg-gray-800 dark:data-[state=open]:bg-gray-800"
+            >
+              <AppAvatar :name="authStore.user?.email" size="sm" />
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-medium text-gray-900 dark:text-gray-100">{{ authStore.user?.email }}</span>
+                <span class="block truncate text-xs capitalize text-gray-400">{{ roleLabel }}</span>
+              </span>
+              <AppIcon name="dots-vertical" :size="16" class="shrink-0 text-gray-400" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent class="w-56" side="top" align="start" :side-offset="8">
+            <DropdownMenuLabel class="p-0 font-normal">
+              <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                <AppAvatar :name="authStore.user?.email" size="sm" />
+                <div class="grid min-w-0 flex-1 leading-tight">
+                  <span class="truncate font-medium">{{ authStore.user?.email }}</span>
+                  <span class="truncate text-xs capitalize text-muted-foreground">{{ roleLabel }}</span>
+                </div>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem @click="router.push('/settings')">
+                <AppIcon name="settings" :size="16" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem @click="toggleDark">
+                <AppIcon :name="isDark ? 'sun' : 'moon'" :size="16" />
+                {{ isDark ? 'Light mode' : 'Dark mode' }}
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" @click="handleLogout">
+              <AppIcon name="log-out" :size="16" />
+              Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </aside>
 
@@ -152,7 +195,5 @@ const roleLabel = computed(() => authStore.primaryRole ?? 'User')
         <router-view />
       </main>
     </div>
-
-    <UserSettingsModal v-model="settingsOpen" />
   </div>
 </template>

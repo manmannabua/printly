@@ -78,6 +78,26 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/notifications/MyNotificationsPage.vue'),
     meta: { requiresAuth: true, layout: 'dashboard', title: 'Notifications' },
   },
+  {
+    path: '/settings',
+    component: () => import('@/layouts/SettingsLayout.vue'),
+    meta: { requiresAuth: true, layout: 'dashboard', title: 'Settings' },
+    children: [
+      { path: '', redirect: '/settings/general' },
+      {
+        path: 'general',
+        name: 'settings-general',
+        component: () => import('@/pages/settings/SettingsGeneralPage.vue'),
+        meta: { requiresAuth: true, layout: 'dashboard', title: 'Settings' },
+      },
+      {
+        path: 'security',
+        name: 'settings-security',
+        component: () => import('@/pages/settings/SettingsSecurityPage.vue'),
+        meta: { requiresAuth: true, layout: 'dashboard', title: 'Settings' },
+      },
+    ],
+  },
 
   // Administration
   {
