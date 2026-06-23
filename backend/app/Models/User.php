@@ -6,6 +6,7 @@ use App\Traits\HasPermissions;
 use App\Traits\HasRoles;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -80,5 +81,39 @@ class User extends Authenticatable
     public function updateLastLogin(): void
     {
         $this->update(['last_login_at' => now()]);
+    }
+
+    /**
+     * Stores this user is a member of (staff/owner). Admins bypass membership.
+     */
+    public function stores(): BelongsToMany
+    {
+        return $this->belongsToMany(Store::class, 'store_user')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * IDs of the stores this user belongs to.
+     *
+     * @return array<int, string>
+     */
+    public function storeIds(): array
+    {
+        return $this->stores()->pluck('stores.id')->all();
+    }
+
+    /**
+     * Whether this user may access the given store. Admins always may.
+     */
+    public function belongsToStore(Store|string $store): bool
+    {
+        if ($this->is_admin) {
+            return true;
+        }
+
+        $storeId = $store instanceof Store ? $store->id : $store;
+
+        return $this->stores()->whereKey($storeId)->exists();
     }
 }

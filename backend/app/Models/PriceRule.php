@@ -15,6 +15,15 @@ class PriceRule extends Model
     public const MOD_PER_JOB = 'per_job';
     public const MOD_MULTIPLIER = 'multiplier';
 
+    /**
+     * Attributes the pricing engine actually matches against a file spec
+     * (see PricingService::quoteFileBased). A rule on any other attribute would
+     * silently never fire, so creation is constrained to this set.
+     *
+     * @var array<int, string>
+     */
+    public const SUPPORTED_ATTRIBUTES = ['paper_size', 'color', 'duplex'];
+
     protected $fillable = [
         'store_id',
         'product_id',

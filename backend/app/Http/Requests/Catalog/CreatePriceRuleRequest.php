@@ -3,14 +3,16 @@
 namespace App\Http\Requests\Catalog;
 
 use App\Http\Requests\BaseRequest;
+use App\Models\PriceRule;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Validation\Rule;
 
 class CreatePriceRuleRequest extends BaseRequest
 {
     public function rules(): array
     {
         return [
-            'attribute' => ['required', 'string', 'max:50'],
+            'attribute' => ['required', 'string', Rule::in(PriceRule::SUPPORTED_ATTRIBUTES)],
             'match_value' => ['required', 'string', 'max:50'],
             'modifier_type' => ['required', 'in:per_page,per_job,multiplier'],
             'amount_cents' => ['nullable', 'integer'],

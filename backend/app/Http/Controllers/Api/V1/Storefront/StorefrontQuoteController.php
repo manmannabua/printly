@@ -1,32 +1,37 @@
 <?php
 
-namespace App\Http\Controllers\Api\V1\Catalog;
+namespace App\Http\Controllers\Api\V1\Storefront;
 
 use App\Http\Controllers\Api\V1\BaseController;
+use App\Http\Controllers\Api\V1\Storefront\Concerns\ResolvesStorefront;
 use App\Models\Product;
 use App\Models\ProductType;
-use App\Models\Store;
 use App\Services\PricingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class QuoteController extends BaseController
+class StorefrontQuoteController extends BaseController
 {
-    public function __construct(private readonly PricingService $pricing)
-    {
-    }
+    use ResolvesStorefront;
+
+    public function __construct(private readonly PricingService $pricing) {}
 
     /**
-     * Return an itemized price for a product given a file spec (file_based) or
-     * option selections (spec_based). Mirrors the storefront /quote endpoint
-     * that the customer flow will use, but auth-gated for catalog testing.
+     * Itemized price for one product (planning §7, POST /s/{slug}/quote).
+     * No order is created — pure pricing preview the customer sees before checkout.
      */
-    public function __invoke(Request $request, Store $store, Product $product): JsonResponse
+    public function __invoke(Request $request, string $slug): JsonResponse
     {
-        $this->authorizeStore($store);
-        abort_unless($product->store_id === $store->id, 404, 'Product not found.');
+        $store = $this->activeStore($slug);
 
-        $product->load(['productType', 'priceRules', 'options']);
+        $productId = $request->input('product_id');
+        $product = Product::where('store_id', $store->id)
+            ->where('is_active', true)
+            ->with(['productType', 'priceRules', 'options'])
+            ->find($productId);
+
+        abort_unless($product !== null, 404, 'Product not found.');
+
         $mode = $product->productType->pricing_mode;
 
         if ($mode === ProductType::PRICING_FILE_BASED) {

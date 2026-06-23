@@ -86,6 +86,24 @@ it('ignores rules whose attribute value does not match the file spec', function 
     expect($quote['total_cents'])->toBe(1000); // 5 × 200, no color surcharge
 });
 
+it('never returns a negative total when a discount rule exceeds the base price', function () {
+    $store = makeStore();
+    $product = makeFileProduct($store, 200);
+    // A discount larger than the base per-page price.
+    $product->priceRules()->create([
+        'store_id' => $store->id, 'attribute' => 'color', 'match_value' => 'bw',
+        'modifier_type' => 'per_page', 'amount_cents' => -500,
+    ]);
+    $product->load('priceRules');
+
+    $quote = app(PricingService::class)->quoteFileBased($product, [
+        'page_count' => 3,
+        'color' => 'bw',
+    ]);
+
+    expect($quote['total_cents'])->toBe(0); // clamped, not -900
+});
+
 it('prices a spec_based product from base + option deltas × quantity', function () {
     $store = makeStore();
     $type = $store->productTypes()->create([

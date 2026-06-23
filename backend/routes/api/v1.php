@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\V1\Catalog\ProductController;
 use App\Http\Controllers\Api\V1\Catalog\ProductTypeController;
 use App\Http\Controllers\Api\V1\Catalog\QuoteController;
 use App\Http\Controllers\Api\V1\DashboardController;
+use App\Http\Controllers\Api\V1\Order\OrderController;
+use App\Http\Controllers\Api\V1\Order\OrderFileController;
 use App\Http\Controllers\Api\V1\PermissionController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\StoreController;
@@ -87,6 +89,18 @@ Route::prefix('stores/{store}')->name('stores.')->group(function () {
         Route::post('products/{product}/price-rules', [PriceRuleController::class, 'store'])->name('products.price-rules.store');
         Route::put('products/{product}/price-rules/{priceRule}', [PriceRuleController::class, 'update'])->name('products.price-rules.update');
         Route::delete('products/{product}/price-rules/{priceRule}', [PriceRuleController::class, 'destroy'])->name('products.price-rules.destroy');
+    });
+
+    // ── Orders: queue board, creation, file uploads, state transitions ──────
+    Route::middleware('permission:orders.view')->group(function () {
+        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+        Route::get('files/{orderFile}', [OrderFileController::class, 'show'])->name('files.show');
+    });
+    Route::middleware('permission:orders.process')->group(function () {
+        Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+        Route::patch('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+        Route::post('files', [OrderFileController::class, 'store'])->name('files.store');
     });
 });
 

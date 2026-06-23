@@ -16,6 +16,7 @@ class ProductTypeController extends BaseController
 {
     public function index(Request $request, Store $store): JsonResponse
     {
+        $this->authorizeStore($store);
         $query = ProductType::query()->where('store_id', $store->id)->withCount('products');
 
         $this->applyFilters($query, $request, [
@@ -29,6 +30,7 @@ class ProductTypeController extends BaseController
 
     public function store(CreateProductTypeRequest $request, Store $store): JsonResponse
     {
+        $this->authorizeStore($store);
         $type = $store->productTypes()->create($request->validated());
         AuditLog::log($type, 'created', null, $type->toArray());
 
@@ -65,6 +67,7 @@ class ProductTypeController extends BaseController
 
     private function ensureOwned(Store $store, ProductType $productType): void
     {
+        $this->authorizeStore($store);
         abort_unless($productType->store_id === $store->id, 404, 'Product type not found.');
     }
 }

@@ -56,6 +56,7 @@ class PriceRuleController extends BaseController
 
     private function ensureProduct(Store $store, Product $product): void
     {
+        $this->authorizeStore($store);
         abort_unless($product->store_id === $store->id, 404, 'Product not found.');
     }
 

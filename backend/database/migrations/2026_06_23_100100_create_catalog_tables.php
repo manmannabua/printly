@@ -49,7 +49,8 @@ return new class extends Migration
             $table->decimal('multiplier', 8, 4)->nullable();// for multiplier
             $table->timestamps();
 
-            $table->index(['product_id', 'attribute']);
+            // One rule per attribute value per product — duplicates would stack silently.
+            $table->unique(['product_id', 'attribute', 'match_value']);
         });
 
         // spec_based choices (size/material/...). Surfaced in phase 2.

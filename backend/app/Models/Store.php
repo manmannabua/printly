@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -31,6 +32,16 @@ class Store extends Model
         'lng' => 'float',
     ];
 
+    /**
+     * Staff/owners with access to this store.
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'store_user')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
     public function productTypes(): HasMany
     {
         return $this->hasMany(ProductType::class);
@@ -39,5 +50,10 @@ class Store extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
     }
 }

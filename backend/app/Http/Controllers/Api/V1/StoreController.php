@@ -15,6 +15,7 @@ class StoreController extends BaseController
     public function index(Request $request): JsonResponse
     {
         $query = Store::withCount(['productTypes', 'products']);
+        $this->scopeStoresForUser($query, $request);
 
         $this->applyFilters($query, $request, [
             'search' => ['name', 'slug', 'address'],
@@ -28,6 +29,17 @@ class StoreController extends BaseController
     public function store(CreateStoreRequest $request): JsonResponse
     {
         $store = Store::create($request->validated());
+
+        // Attach the creator as owner so non-admins keep access to what they
+        // created (admins manage every store regardless of membership).
+        $user = $request->user();
+        if ($user && ! $user->is_admin) {
+            $store->users()->attach($user->id, [
+                'id' => (string) \Illuminate\Support\Str::uuid(),
+                'role' => 'owner',
+            ]);
+        }
+
         AuditLog::log($store, 'created', null, $store->toArray());
 
         return $this->success(new StoreResource($store), 'Store created successfully.', 201);
@@ -35,6 +47,7 @@ class StoreController extends BaseController
 
     public function show(Store $store): JsonResponse
     {
+        $this->authorizeStore($store);
         $store->loadCount(['productTypes', 'products']);
 
         return $this->success(new StoreResource($store));
@@ -42,6 +55,7 @@ class StoreController extends BaseController
 
     public function update(UpdateStoreRequest $request, Store $store): JsonResponse
     {
+        $this->authorizeStore($store);
         $old = $store->toArray();
         $store->update($request->validated());
         AuditLog::log($store, 'updated', $old, $store->fresh()->toArray());
@@ -51,6 +65,7 @@ class StoreController extends BaseController
 
     public function destroy(Store $store): JsonResponse
     {
+        $this->authorizeStore($store);
         $snapshot = $store->toArray();
         $store->delete();
         AuditLog::log($store, 'deleted', $snapshot);

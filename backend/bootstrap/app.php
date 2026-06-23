@@ -68,6 +68,16 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
+        // Illegal order state-machine transitions are a client error, not a 500.
+        $exceptions->render(function (\App\Exceptions\OrderTransitionException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 422);
+            }
+        });
+
         // Convert PHP-level coercion failures into 400 instead of leaking 500.
         $exceptions->render(function (\TypeError|\ValueError $e, Request $request) {
             if ($request->is('api/*')) {

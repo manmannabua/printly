@@ -16,6 +16,7 @@ class ProductController extends BaseController
 {
     public function index(Request $request, Store $store): JsonResponse
     {
+        $this->authorizeStore($store);
         $query = Product::query()->where('store_id', $store->id)->with('productType')->withCount('priceRules');
 
         $this->applyFilters($query, $request, [
@@ -29,6 +30,7 @@ class ProductController extends BaseController
 
     public function store(CreateProductRequest $request, Store $store): JsonResponse
     {
+        $this->authorizeStore($store);
         $product = $store->products()->create($request->validated());
         AuditLog::log($product, 'created', null, $product->toArray());
 
@@ -65,6 +67,7 @@ class ProductController extends BaseController
 
     private function ensureOwned(Store $store, Product $product): void
     {
+        $this->authorizeStore($store);
         abort_unless($product->store_id === $store->id, 404, 'Product not found.');
     }
 }

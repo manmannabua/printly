@@ -88,7 +88,8 @@ class PricingService
         // 3) Combine: ((perPage * pages * multiplier) + perJob) * copies.
         $pagesCost = (int) round($perPageCents * $pageCount * $multiplier);
         $perUnit = $pagesCost + $perJobCents;
-        $total = $perUnit * $copies;
+        // Discount rules (negative amounts) must never produce a negative charge.
+        $total = max(0, $perUnit * $copies);
 
         $breakdown[] = [
             'label' => "Pages × {$pageCount}" . ($multiplier !== 1.0 ? " × {$multiplier}" : ''),
@@ -156,7 +157,7 @@ class PricingService
         }
 
         return [
-            'total_cents' => $perUnit * $quantity,
+            'total_cents' => max(0, $perUnit * $quantity),
             'quantity' => $quantity,
             'breakdown' => $breakdown,
         ];

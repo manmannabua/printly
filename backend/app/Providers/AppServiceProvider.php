@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Rate limiter for login (SEC-01)
         RateLimiter::for('auth-login', function (Request $request) {
-            return Limit::perMinute(5)->by($request->input('email', '') . '|' . $request->ip());
+            return Limit::perMinute(5)->by($request->input('email', '').'|'.$request->ip());
         });
 
         // Rate limiter for forgot/reset password (SEC-01)
@@ -56,6 +56,16 @@ class AppServiceProvider extends ServiceProvider
         // Public buyer inquiry submissions.
         RateLimiter::for('inquiry-submit', function (Request $request) {
             return Limit::perMinute(5)->by($request->ip());
+        });
+
+        // Public storefront reads (catalog, quote, status polling).
+        RateLimiter::for('storefront', function (Request $request) {
+            return Limit::perMinute(60)->by($request->ip());
+        });
+
+        // Public storefront writes (guest uploads + order placement) — tighter.
+        RateLimiter::for('storefront-write', function (Request $request) {
+            return Limit::perMinute(20)->by($request->ip());
         });
     }
 }

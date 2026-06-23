@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Store;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -10,6 +11,34 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 abstract class BaseController extends Controller
 {
+    /**
+     * Ensure the authenticated user may act on the given store.
+     *
+     * Admins (platform owners) bypass membership; everyone else must belong to
+     * the store via the store_user pivot. 404 (not 403) so store existence is
+     * not leaked to non-members — consistent with the resource ownership checks.
+     */
+    protected function authorizeStore(Store $store): void
+    {
+        $user = request()->user();
+
+        abort_unless($user && $user->belongsToStore($store), 404, 'Store not found.');
+    }
+
+    /**
+     * Scope a Store query to the stores the authenticated user may see.
+     */
+    protected function scopeStoresForUser(Builder $query, Request $request): void
+    {
+        $user = $request->user();
+
+        if (! $user || $user->is_admin) {
+            return;
+        }
+
+        $query->whereIn('id', $user->storeIds());
+    }
+
     /**
      * Return a success response.
      */
