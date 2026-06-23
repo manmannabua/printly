@@ -32,7 +32,7 @@ api.interceptors.response.use(
     const status = error.response?.status
 
     // Pages that must remain accessible even when unauthenticated — don't redirect
-    const authFreeRoutes = ['/reset-password', '/forgot-password', '/mobile-clock-in', '/public-exam', '/sign/', '/dev/', '/browse', '/account']
+    const authFreeRoutes = ['/reset-password', '/forgot-password', '/s/', '/orders/']
 
     if (status === 401 && !isRedirectingToLogin) {
       const { useAuthStore } = await import('@/stores/auth')

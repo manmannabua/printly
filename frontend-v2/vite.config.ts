@@ -18,7 +18,9 @@ export default defineConfig({
     dedupe: ['vue', '@vue/runtime-core', '@vue/runtime-dom', '@vue/reactivity'],
   },
   server: {
-    port: 5174,
+    // 5173 matches the backend's SANCTUM_STATEFUL_DOMAINS / FRONTEND_URL, so
+    // admin cookie auth works out of the box.
+    port: 5173,
     proxy: {
       '/api': {
         target: resolveApiTarget(),

@@ -6,6 +6,7 @@ import QRCode from 'qrcode'
 import AppIcon from '@/components/common/AppIcon.vue'
 import AppSpinner from '@/components/common/AppSpinner.vue'
 import { getPublicOrder } from '@/services/storefrontService'
+import { subscribeToOrder } from '@/services/echo'
 import { getErrorMessage } from '@/services/api'
 import type { OrderStatus, PublicOrder } from '@/types/printly'
 
@@ -70,10 +71,14 @@ async function load(): Promise<void> {
   }
 }
 
+// Real-time updates over WebSocket; polling stays as a fallback when Reverb is
+// unavailable (the page must keep working without it).
 const { pause: pausePolling } = useIntervalFn(load, 8000)
+let unsubscribe: (() => void) | null = null
 
 onMounted(async () => {
   await load()
+  unsubscribe = subscribeToOrder(code, () => { void load() })
   try {
     qrDataUrl.value = await QRCode.toDataURL(window.location.href, { width: 220, margin: 1 })
   } catch {
@@ -81,7 +86,10 @@ onMounted(async () => {
   }
 })
 
-onUnmounted(() => pausePolling())
+onUnmounted(() => {
+  pausePolling()
+  unsubscribe?.()
+})
 </script>
 
 <template>

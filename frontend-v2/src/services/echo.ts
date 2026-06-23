@@ -76,3 +76,31 @@ export function subscribeToStoreOrders(storeId: string, handlers: StoreOrderHand
     return null
   }
 }
+
+/**
+ * Subscribe to a single order's status changes for the guest status page. Uses a
+ * public, code-scoped channel (the order code is the same secret that gates the
+ * public REST endpoint), so no broadcast auth handshake is required. Returns an
+ * unsubscribe function, or null if real-time is unavailable (caller polls).
+ */
+export function subscribeToOrder(code: string, onStatusChanged: (payload: unknown) => void): (() => void) | null {
+  const client = init()
+  if (!client) return null
+
+  const channelName = `orders.${code}`
+  try {
+    const channel = client.channel(channelName)
+    channel.listen('OrderPlaced', onStatusChanged)
+    channel.listen('OrderStatusChanged', onStatusChanged)
+
+    return () => {
+      try {
+        client.leave(channelName)
+      } catch {
+        /* noop */
+      }
+    }
+  } catch {
+    return null
+  }
+}

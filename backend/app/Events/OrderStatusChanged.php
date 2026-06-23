@@ -3,6 +3,7 @@
 namespace App\Events;
 
 use App\Models\Order;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -23,11 +24,16 @@ class OrderStatusChanged implements ShouldBroadcast
     ) {}
 
     /**
-     * @return array<int, PrivateChannel>
+     * @return array<int, Channel|PrivateChannel>
      */
     public function broadcastOn(): array
     {
         return [
+            // Public, code-scoped channel for the guest order-status page. The
+            // order code is already the sole secret protecting the public REST
+            // endpoint, so a code-keyed channel has the same access model — no
+            // broadcast auth handshake needed, and the payload carries no PII.
+            new Channel("orders.{$this->order->code}"),
             new PrivateChannel("order.{$this->order->id}"),
             new PrivateChannel("store.{$this->order->store_id}.orders"),
         ];

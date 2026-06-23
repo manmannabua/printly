@@ -3,6 +3,7 @@
 namespace App\Events;
 
 use App\Models\Order;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -19,11 +20,16 @@ class OrderPlaced implements ShouldBroadcast
     public function __construct(public readonly Order $order) {}
 
     /**
-     * @return array<int, PrivateChannel>
+     * @return array<int, Channel|PrivateChannel>
      */
     public function broadcastOn(): array
     {
-        return [new PrivateChannel("store.{$this->order->store_id}.orders")];
+        return [
+            // Public, code-scoped channel for the guest order-status page (same
+            // access model as the public REST endpoint — see OrderStatusChanged).
+            new Channel("orders.{$this->order->code}"),
+            new PrivateChannel("store.{$this->order->store_id}.orders"),
+        ];
     }
 
     /**
