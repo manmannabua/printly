@@ -1,0 +1,68 @@
+@import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
+
+@source '../../views/careers/**/*.blade.php';
+@source './**/*.vue';
+@source './**/*.ts';
+
+/* Theme color utility classes — driven by CSS custom properties set on root */
+
+@utility bg-c-primary {
+  background-color: var(--c-primary);
+}
+@utility bg-c-primary-hover {
+  background-color: var(--c-primary-hover);
+}
+@utility bg-c-primary-light {
+  background-color: var(--c-primary-light);
+}
+@utility bg-c-gradient {
+  background: linear-gradient(to bottom right, var(--c-gradient-from), var(--c-gradient-via), var(--c-gradient-to));
+}
+@utility bg-c-gradient-r {
+  background: linear-gradient(to right, var(--c-gradient-from), var(--c-gradient-to));
+}
+
+@utility text-c-primary {
+  color: var(--c-primary);
+}
+@utility text-c-primary-hover {
+  color: var(--c-primary-hover);
+}
+@utility text-c-primary-light {
+  color: color-mix(in srgb, white 80%, var(--c-primary));
+}
+@utility text-c-primary-text {
+  color: var(--c-primary-text);
+}
+
+@utility border-c-primary {
+  border-color: var(--c-primary);
+}
+@utility border-c-light {
+  border-color: var(--c-accent-border);
+}
+
+@utility ring-c-primary {
+  --tw-ring-color: var(--c-primary);
+}
+@utility ring-c-primary-20 {
+  --tw-ring-color: color-mix(in srgb, var(--c-primary) 20%, transparent);
+}
+
+@utility accent-c-primary {
+  accent-color: var(--c-primary);
+}
+
+@utility spinner-c {
+  border-color: var(--c-spinner-track);
+  border-top-color: var(--c-primary);
+}
+
+/* Prose link color override for CMS rich text */
+.prose-c-primary :where(a) {
+  color: var(--c-primary);
+}
+.prose-c-primary :where(a:hover) {
+  color: var(--c-primary-hover);
+}

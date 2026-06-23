@@ -1,0 +1,95 @@
+# Deploy branch only tracks backend/ and frontend-v2/.
+# Dev-only directories live on develop; they must never reach production.
+
+####################################
+# Dev/local tooling
+####################################
+.scratch/
+.claude/
+.claude-cache/
+.claude-session/
+.mcp.json
+
+####################################
+# Dev-only docs and references
+# NOTE: planning/ IS tracked in Printly — it holds the only project docs.
+####################################
+references/
+docs/
+plans-proposal/
+security/
+
+####################################
+# OS / Editor
+####################################
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+####################################
+# Root-level junk (dumps, tmp, unrelated storage)
+####################################
+node_modules/
+storage/
+snap.txt
+*.log
+tmp_*.json
+tmp_*.txt
+tmp_*.network-response
+*.network-response
+*.tmp
+*.bak
+*.xlsx
+*.png
+*.jpg
+*.jpeg
+
+####################################
+# Environment / secrets at root (if any)
+####################################
+.env
+.env.*
+!.env.example
+
+####################################
+# Build artifacts
+####################################
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+####################################
+# Laravel backend
+####################################
+backend/vendor/
+backend/node_modules/
+backend/storage/app/*
+!backend/storage/app/public
+backend/storage/framework/*
+!backend/storage/framework/.gitignore
+backend/storage/logs/*
+backend/storage/*.key
+backend/bootstrap/cache/*
+!backend/bootstrap/cache/.gitignore
+backend/public/storage
+backend/*.log
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/.phpunit.result.cache
+backend/.phpunit.cache
+
+####################################
+# Vue frontend
+####################################
+frontend-v2/node_modules/
+frontend-v2/dist/
+frontend-v2/.vite/
+frontend-v2/.cache/
+frontend-v2/.env
+frontend-v2/.env.*
+!frontend-v2/.env.example
