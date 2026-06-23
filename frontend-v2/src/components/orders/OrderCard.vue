@@ -11,6 +11,7 @@ const props = defineProps<{
 defineEmits<{
   (e: 'drag-start', order: Order): void
   (e: 'chat', order: Order): void
+  (e: 'open', order: Order): void
 }>()
 
 function formatMoney(cents: number): string {
@@ -47,7 +48,11 @@ function itemsSummary(o: Order): string {
       />
       <div class="min-w-0 flex-1">
         <div class="flex items-center justify-between gap-2">
-          <span class="font-mono text-sm font-semibold text-gray-900 dark:text-gray-100">{{ order.code }}</span>
+          <button
+            class="rounded font-mono text-sm font-semibold text-gray-900 hover:text-primary-600 hover:underline dark:text-gray-100 dark:hover:text-primary-400"
+            title="View order details"
+            @click.stop="$emit('open', order)"
+          >{{ order.code }}</button>
           <button
             class="inline-flex shrink-0 items-center justify-center rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-primary-600 dark:hover:bg-gray-700"
             title="Open chat with customer"

@@ -17,6 +17,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (e: 'transition', order: Order, newStatus: OrderStatus, reason?: string): void
   (e: 'chat', order: Order): void
+  (e: 'open', order: Order): void
 }>()
 
 const dragOrder = ref<Order | null>(null)
@@ -80,6 +81,7 @@ function cancelTransition() {
       @drag-start="onDragStart"
       @drop="onDrop(column.key)"
       @chat="emit('chat', $event)"
+      @open="emit('open', $event)"
     />
   </div>
 

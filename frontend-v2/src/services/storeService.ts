@@ -9,6 +9,12 @@ export async function getStore(id: string): Promise<Store> {
   return res.data.data
 }
 
+/** All stores visible to the current user (scoped to membership for non-admins). */
+export async function listStores(): Promise<Store[]> {
+  const res = await api.get<ApiResponse<Store[]>>('/api/v1/stores', { params: { all: true } })
+  return res.data.data
+}
+
 export async function createStore(payload: StorePayload): Promise<Store> {
   const res = await api.post<ApiResponse<Store>>('/api/v1/stores', payload)
   return res.data.data

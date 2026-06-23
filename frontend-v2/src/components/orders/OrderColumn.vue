@@ -16,6 +16,7 @@ const emit = defineEmits<{
   (e: 'drag-start', order: Order): void
   (e: 'drop'): void
   (e: 'chat', order: Order): void
+  (e: 'open', order: Order): void
 }>()
 
 function onDragOver(event: DragEvent) {
@@ -53,6 +54,7 @@ function onDrop(event: DragEvent) {
         :draggable="canProcess"
         @drag-start="emit('drag-start', $event)"
         @chat="emit('chat', $event)"
+        @open="emit('open', $event)"
       />
       <div v-if="orders.length === 0" class="flex flex-1 items-center justify-center py-8 text-xs text-gray-400">
         No orders

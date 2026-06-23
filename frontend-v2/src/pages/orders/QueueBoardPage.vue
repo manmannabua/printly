@@ -6,7 +6,7 @@ import api, { getErrorMessage } from '@/services/api'
 import type { ApiResponse } from '@/types/api'
 import type { Order, OrderStatus, Store } from '@/types/printly'
 import type { ChatConversation, ChatMessage } from '@/types/chat'
-import { transitionOrder } from '@/services/orderService'
+import { transitionOrder, getOrder } from '@/services/orderService'
 import * as chatService from '@/services/chatService'
 import { subscribeToStoreOrders } from '@/services/echo'
 import { useReverbChannel } from '@/composables/useReverbChannel'
@@ -18,6 +18,7 @@ import AppButton from '@/components/ui/AppButton.vue'
 import AppSpinner from '@/components/common/AppSpinner.vue'
 import AppIcon from '@/components/common/AppIcon.vue'
 import OrderBoard from '@/components/orders/OrderBoard.vue'
+import OrderDetailModal from '@/components/orders/OrderDetailModal.vue'
 import ChatThread from '@/components/chat/ChatThread.vue'
 
 const route = useRoute()
@@ -58,6 +59,24 @@ async function onTransition(order: Order, newStatus: OrderStatus, reason?: strin
   } catch (e) {
     toast.error(getErrorMessage(e))
     void load() // revert to server truth
+  }
+}
+
+// ── Order detail modal ───────────────────────────────────────────────────────
+const detailOpen = ref(false)
+const detailOrder = ref<Order | null>(null)
+const detailLoading = ref(false)
+
+async function openDetail(order: Order): Promise<void> {
+  detailOpen.value = true
+  detailOrder.value = order // show summary immediately
+  detailLoading.value = true
+  try {
+    detailOrder.value = await getOrder(storeId, order.id) // full order with items.files + events
+  } catch (e) {
+    toast.error(getErrorMessage(e))
+  } finally {
+    detailLoading.value = false
   }
 }
 
@@ -232,6 +251,14 @@ onUnmounted(() => {
       :can-process="canProcess"
       @transition="onTransition"
       @chat="openChat"
+      @open="openDetail"
+    />
+
+    <OrderDetailModal
+      v-model="detailOpen"
+      :store-id="storeId"
+      :order="detailOrder"
+      :loading="detailLoading"
     />
 
     <!-- Chat drawer -->

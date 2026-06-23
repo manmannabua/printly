@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useDarkMode } from '@/composables/useDarkMode'
+import { listStores } from '@/services/storeService'
+import type { Store } from '@/types/printly'
 import AppIcon from '@/components/common/AppIcon.vue'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import NotificationBell from '@/components/notifications/NotificationBell.vue'
@@ -34,13 +36,25 @@ const { isDark, toggle: toggleDark } = useDarkMode()
 
 const sidebarOpen = ref(false)
 
-// NOTE: Printly domain nav (Orders/Queue, Catalog, Customers, Payments) is
-// added as those modules land — see planning/01-data-model-and-architecture.md.
-const groups: NavGroup[] = [
+// The user's stores (membership-scoped for non-admins) power the direct Queue
+// link. Only fetched for store members — admins reach queues via the store list.
+const myStores = ref<Store[]>([])
+onMounted(async () => {
+  if (!authStore.isAdmin && authStore.can('orders.view')) {
+    try { myStores.value = await listStores() } catch { /* non-critical */ }
+  }
+})
+const queueTo = computed(() => {
+  const first = myStores.value[0]
+  return first ? `/stores/${first.id}/queue` : null
+})
+
+const groups = computed<NavGroup[]>(() => [
   {
     label: 'Overview',
     items: [
       { label: 'Dashboard', to: '/dashboard', icon: 'home' },
+      ...(queueTo.value ? [{ label: 'Queue', to: queueTo.value, icon: 'columns', permission: 'orders.view' }] : []),
       { label: 'Messages', to: '/chat', icon: 'message-circle' },
     ],
   },
@@ -58,10 +72,10 @@ const groups: NavGroup[] = [
       { label: 'Audit Logs', to: '/audit-logs', icon: 'clipboard-list', permission: 'audit-logs.view' },
     ],
   },
-]
+])
 
 const visibleGroups = computed(() =>
-  groups
+  groups.value
     .map((g) => ({
       ...g,
       items: g.items.filter((i) => !i.permission || authStore.can(i.permission)),
