@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\Chat\OrderChatController;
 use App\Http\Controllers\Api\V1\Order\PublicOrderStatusController;
 use App\Http\Controllers\Api\V1\Storefront\StorefrontController;
 use App\Http\Controllers\Api\V1\Storefront\StorefrontFileController;
@@ -35,6 +36,14 @@ Route::post('mobile-login', [AuthController::class, 'mobileLogin'])
 
 // Customer order status by QR/order code (the code is the bearer).
 Route::get('orders/{code}', [PublicOrderStatusController::class, 'show'])->name('orders.status');
+
+// Per-order customer chat (the order code is the bearer — same model as status).
+Route::get('orders/{code}/chat', [OrderChatController::class, 'thread'])->name('orders.chat.thread');
+Route::middleware('throttle:storefront-write')->group(function () {
+    Route::post('orders/{code}/chat/messages', [OrderChatController::class, 'send'])->name('orders.chat.send');
+    Route::post('orders/{code}/chat/read', [OrderChatController::class, 'markRead'])->name('orders.chat.read');
+    Route::post('orders/{code}/chat/messages/{messageId}/reactions', [OrderChatController::class, 'react'])->name('orders.chat.react');
+});
 
 // ── Storefront (guest-friendly, slug-scoped) — planning §7 ──────────────────
 Route::middleware('throttle:storefront')->group(function () {

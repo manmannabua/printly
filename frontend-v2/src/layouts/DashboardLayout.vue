@@ -29,7 +29,10 @@ const sidebarOpen = ref(false)
 const groups: NavGroup[] = [
   {
     label: 'Overview',
-    items: [{ label: 'Dashboard', to: '/dashboard', icon: 'home' }],
+    items: [
+      { label: 'Dashboard', to: '/dashboard', icon: 'home' },
+      { label: 'Messages', to: '/chat', icon: 'message-circle' },
+    ],
   },
   {
     label: 'Catalog',

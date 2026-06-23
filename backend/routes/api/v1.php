@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Catalog\PriceRuleController;
 use App\Http\Controllers\Api\V1\Catalog\ProductController;
 use App\Http\Controllers\Api\V1\Catalog\ProductTypeController;
 use App\Http\Controllers\Api\V1\Catalog\QuoteController;
+use App\Http\Controllers\Api\V1\Chat\ChatController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
@@ -55,6 +56,18 @@ Route::prefix('my/notifications')->name('notifications.')->group(function () {
     Route::delete('read', [NotificationController::class, 'destroyRead'])->name('destroy-read');
     Route::post('{id}/read', [NotificationController::class, 'markAsRead'])->name('read');
     Route::delete('{id}', [NotificationController::class, 'destroy'])->name('destroy');
+});
+
+// ── Chat (internal Admin↔Store) ───────────────────────────────────────────
+Route::prefix('chat')->name('chat.')->group(function () {
+    Route::get('conversations', [ChatController::class, 'index'])->name('index');
+    Route::post('conversations', [ChatController::class, 'startInternal'])->name('start');
+    Route::get('conversations/{id}/messages', [ChatController::class, 'messages'])->name('messages');
+    Route::post('conversations/{id}/messages', [ChatController::class, 'send'])->name('send');
+    Route::post('conversations/{id}/read', [ChatController::class, 'markRead'])->name('read');
+    Route::patch('messages/{id}', [ChatController::class, 'edit'])->name('edit');
+    Route::delete('messages/{id}', [ChatController::class, 'destroy'])->name('destroy');
+    Route::post('messages/{id}/reactions', [ChatController::class, 'react'])->name('react');
 });
 
 // ── Uploads (images / documents) ────────────────────────────────────────

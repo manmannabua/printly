@@ -5,10 +5,14 @@ import { useIntervalFn } from '@vueuse/core'
 import QRCode from 'qrcode'
 import AppIcon from '@/components/common/AppIcon.vue'
 import AppSpinner from '@/components/common/AppSpinner.vue'
-import { getPublicOrder } from '@/services/storefrontService'
+import { getPublicOrder, getOrderChat, sendOrderChat, reactOrderChat, markOrderChatRead } from '@/services/storefrontService'
 import { subscribeToOrder } from '@/services/echo'
+import { useReverbChannel } from '@/composables/useReverbChannel'
 import { getErrorMessage } from '@/services/api'
+import AppCard from '@/components/ui/AppCard.vue'
+import ChatThread from '@/components/chat/ChatThread.vue'
 import type { OrderStatus, PublicOrder } from '@/types/printly'
+import type { ChatMessage } from '@/types/chat'
 
 const route = useRoute()
 const code = String(route.params.code)
@@ -76,9 +80,58 @@ async function load(): Promise<void> {
 const { pause: pausePolling } = useIntervalFn(load, 8000)
 let unsubscribe: (() => void) | null = null
 
+// ── Customer ↔ store chat (public, code-scoped) ─────────────────────────────
+const reverb = useReverbChannel()
+const chatMessages = ref<ChatMessage[]>([])
+const chatLoading = ref(true)
+
+function upsertChat(message: ChatMessage): void {
+  const i = chatMessages.value.findIndex(m => m.id === message.id)
+  if (i !== -1) chatMessages.value[i] = message
+  else chatMessages.value.push(message)
+}
+
+async function loadChat(): Promise<void> {
+  try {
+    const { messages } = await getOrderChat(code)
+    chatMessages.value = messages
+    void markChatRead()
+  } catch {
+    /* chat is optional; ignore */
+  } finally {
+    chatLoading.value = false
+  }
+}
+
+async function markChatRead(): Promise<void> {
+  const last = chatMessages.value[chatMessages.value.length - 1]
+  if (last) {
+    try { await markOrderChatRead(code, last.id) } catch { /* ignore */ }
+  }
+}
+
+async function onChatSend(body: string): Promise<void> {
+  upsertChat(await sendOrderChat(code, body))
+}
+
+async function onChatReact(messageId: string, emoji: string): Promise<void> {
+  await reactOrderChat(code, messageId, emoji)
+}
+
 onMounted(async () => {
   await load()
   unsubscribe = subscribeToOrder(code, () => { void load() })
+
+  void loadChat()
+  reverb.subscribeToPublic<{ kind: string, message: ChatMessage }>(`chat.order.${code}`, '.message', (p) => {
+    upsertChat(p.message)
+    void markChatRead()
+  })
+  reverb.subscribeToPublic<{ message_id: string, reactions: ChatMessage['reactions'] }>(`chat.order.${code}`, '.reaction.toggled', (p) => {
+    const m = chatMessages.value.find(x => x.id === p.message_id)
+    if (m) m.reactions = p.reactions
+  })
+
   try {
     qrDataUrl.value = await QRCode.toDataURL(window.location.href, { width: 220, margin: 1 })
   } catch {
@@ -161,6 +214,23 @@ onUnmounted(() => {
         <span class="text-sm text-gray-500">Total</span>
         <span class="text-lg font-semibold text-gray-900 dark:text-white">{{ formatMoney(order.total_cents) }}</span>
       </div>
+
+      <!-- Chat with the store -->
+      <AppCard class="mt-4 overflow-hidden p-0">
+        <div class="flex items-center gap-2 border-b border-gray-200 px-4 py-3 dark:border-zinc-800">
+          <AppIcon name="message-circle" :size="18" class="text-cyan-600" />
+          <p class="text-sm font-semibold text-gray-900 dark:text-white">Chat with the store</p>
+        </div>
+        <ChatThread
+          class="h-80"
+          :messages="chatMessages"
+          my-side="customer"
+          :loading="chatLoading"
+          empty-hint="Questions about your order? Message the store here."
+          @send="onChatSend"
+          @react="onChatReact"
+        />
+      </AppCard>
 
       <p class="mt-4 text-center text-xs text-gray-400">
         This page updates automatically.

@@ -67,6 +67,12 @@ const routes: RouteRecordRaw[] = [
   },
 
   {
+    path: '/chat',
+    name: 'chat',
+    component: () => import('@/pages/chat/ChatPage.vue'),
+    meta: { requiresAuth: true, layout: 'dashboard', title: 'Messages' },
+  },
+  {
     path: '/notifications',
     name: 'notifications',
     component: () => import('@/pages/notifications/MyNotificationsPage.vue'),

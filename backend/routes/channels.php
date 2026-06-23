@@ -39,3 +39,19 @@ Broadcast::channel('order.{orderId}', function ($user, $orderId) {
 
     return $order !== null && $user->belongsToStore($order->store_id);
 });
+
+/**
+ * Chat conversation channel — admins always; store members for their store's
+ * conversations. The guest customer side uses the public chat.order.{code}
+ * channel instead (no auth), so it is not handled here.
+ */
+Broadcast::channel('chat.conversation.{conversationId}', function ($user, $conversationId) {
+    $conversation = \App\Models\ChatConversation::find($conversationId);
+
+    if ($conversation === null) {
+        return false;
+    }
+
+    return $user->is_admin
+        || ($conversation->store_id !== null && $user->belongsToStore($conversation->store_id));
+});

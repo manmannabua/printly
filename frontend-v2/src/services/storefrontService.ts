@@ -1,5 +1,6 @@
 import api from '@/services/api'
 import type { ApiResponse } from '@/types/api'
+import type { ChatConversation, ChatMessage } from '@/types/chat'
 import type {
   OrderFile,
   PlacedOrder,
@@ -76,4 +77,24 @@ export async function placeStorefrontOrder(slug: string, payload: PlaceOrderPayl
 export async function getPublicOrder(code: string): Promise<PublicOrder> {
   const res = await api.get<ApiResponse<PublicOrder>>(`/api/v1/orders/${code}`)
   return res.data.data
+}
+
+// ── Per-order customer chat (public, code-scoped) ────────────────────────────
+
+export async function getOrderChat(code: string): Promise<{ conversation: ChatConversation, messages: ChatMessage[] }> {
+  const res = await api.get<ApiResponse<{ conversation: ChatConversation, messages: ChatMessage[] }>>(`/api/v1/orders/${code}/chat`)
+  return res.data.data
+}
+
+export async function sendOrderChat(code: string, body: string): Promise<ChatMessage> {
+  const res = await api.post<ApiResponse<ChatMessage>>(`/api/v1/orders/${code}/chat/messages`, { body })
+  return res.data.data
+}
+
+export async function markOrderChatRead(code: string, messageId: string): Promise<void> {
+  await api.post(`/api/v1/orders/${code}/chat/read`, { message_id: messageId })
+}
+
+export async function reactOrderChat(code: string, messageId: string, emoji: string): Promise<void> {
+  await api.post(`/api/v1/orders/${code}/chat/messages/${messageId}/reactions`, { emoji })
 }
