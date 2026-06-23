@@ -5,7 +5,7 @@ import { useIntervalFn } from '@vueuse/core'
 import QRCode from 'qrcode'
 import AppIcon from '@/components/common/AppIcon.vue'
 import AppSpinner from '@/components/common/AppSpinner.vue'
-import { getPublicOrder, getOrderChat, sendOrderChat, reactOrderChat, markOrderChatRead } from '@/services/storefrontService'
+import { getPublicOrder, getOrderChat, sendOrderChat, reactOrderChat, markOrderChatRead, sendOrderTyping } from '@/services/storefrontService'
 import { subscribeToOrder } from '@/services/echo'
 import { useReverbChannel } from '@/composables/useReverbChannel'
 import { getErrorMessage } from '@/services/api'
@@ -84,6 +84,8 @@ let unsubscribe: (() => void) | null = null
 const reverb = useReverbChannel()
 const chatMessages = ref<ChatMessage[]>([])
 const chatLoading = ref(true)
+const chatTypingLabel = ref<string | null>(null)
+let chatTypingTimer: ReturnType<typeof setTimeout> | null = null
 
 function upsertChat(message: ChatMessage): void {
   const i = chatMessages.value.findIndex(m => m.id === message.id)
@@ -118,6 +120,10 @@ async function onChatReact(messageId: string, emoji: string): Promise<void> {
   await reactOrderChat(code, messageId, emoji)
 }
 
+async function onChatTyping(isTyping: boolean): Promise<void> {
+  try { await sendOrderTyping(code, isTyping) } catch { /* ignore */ }
+}
+
 onMounted(async () => {
   await load()
   unsubscribe = subscribeToOrder(code, () => { void load() })
@@ -130,6 +136,16 @@ onMounted(async () => {
   reverb.subscribeToPublic<{ message_id: string, reactions: ChatMessage['reactions'] }>(`chat.order.${code}`, '.reaction.toggled', (p) => {
     const m = chatMessages.value.find(x => x.id === p.message_id)
     if (m) m.reactions = p.reactions
+  })
+  reverb.subscribeToPublic<{ side: string, is_typing: boolean }>(`chat.order.${code}`, '.user.typing', (p) => {
+    if (p.side === 'customer') return
+    if (chatTypingTimer) clearTimeout(chatTypingTimer)
+    if (p.is_typing) {
+      chatTypingLabel.value = 'Store is typing…'
+      chatTypingTimer = setTimeout(() => { chatTypingLabel.value = null }, 4000)
+    } else {
+      chatTypingLabel.value = null
+    }
   })
 
   try {
@@ -226,9 +242,11 @@ onUnmounted(() => {
           :messages="chatMessages"
           my-side="customer"
           :loading="chatLoading"
+          :typing-label="chatTypingLabel"
           empty-hint="Questions about your order? Message the store here."
           @send="onChatSend"
           @react="onChatReact"
+          @typing="onChatTyping"
         />
       </AppCard>
 

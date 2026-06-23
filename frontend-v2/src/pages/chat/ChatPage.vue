@@ -15,6 +15,8 @@ const activeId = ref<string | null>(null)
 const messages = ref<ChatMessage[]>([])
 const loadingList = ref(true)
 const loadingThread = ref(false)
+const typingLabel = ref<string | null>(null)
+let typingClearTimer: ReturnType<typeof setTimeout> | null = null
 
 const active = computed(() => conversations.value.find(c => c.id === activeId.value) ?? null)
 const myUserId = computed(() => authStore.user?.id ?? null)
@@ -47,9 +49,26 @@ async function openConversation(c: ChatConversation): Promise<void> {
     const m = messages.value.find(x => x.id === p.message_id)
     if (m) m.reactions = p.reactions
   })
+  reverb.subscribeToPrivate<{ side: string, name: string | null, is_typing: boolean }>(channel, '.user.typing', (p) => {
+    if (p.side === c.my_side) return
+    if (typingClearTimer) clearTimeout(typingClearTimer)
+    if (p.is_typing) {
+      const who = p.name ?? (p.side === 'customer' ? 'Customer' : p.side === 'store' ? 'Store' : 'Admin')
+      typingLabel.value = `${who} is typing…`
+      typingClearTimer = setTimeout(() => { typingLabel.value = null }, 4000)
+    } else {
+      typingLabel.value = null
+    }
+  })
 
   c.unread_count = 0
   void markReadLatest()
+}
+
+async function onTyping(isTyping: boolean): Promise<void> {
+  if (activeId.value) {
+    try { await chatService.sendTyping(activeId.value, isTyping) } catch { /* ignore */ }
+  }
 }
 
 async function markReadLatest(): Promise<void> {
@@ -156,10 +175,12 @@ onMounted(async () => {
           :my-user-id="myUserId"
           :can-modify="true"
           :loading="loadingThread"
+          :typing-label="typingLabel"
           @send="onSend"
           @react="onReact"
           @edit="onEdit"
           @remove="onRemove"
+          @typing="onTyping"
         />
       </template>
       <div v-else class="hidden flex-1 items-center justify-center text-sm text-gray-400 sm:flex">

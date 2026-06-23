@@ -10,11 +10,13 @@ const props = withDefaults(defineProps<{
   canModify?: boolean
   loading?: boolean
   emptyHint?: string
+  typingLabel?: string | null
 }>(), {
   myUserId: null,
   canModify: false,
   loading: false,
   emptyHint: 'No messages yet. Say hello!',
+  typingLabel: null,
 })
 
 const emit = defineEmits<{
@@ -22,6 +24,7 @@ const emit = defineEmits<{
   (e: 'react', messageId: string, emoji: string): void
   (e: 'edit', messageId: string, body: string): void
   (e: 'remove', messageId: string): void
+  (e: 'typing', isTyping: boolean): void
 }>()
 
 const QUICK_EMOJIS = ['👍', '❤️', '😂', '🎉', '✅']
@@ -34,11 +37,34 @@ const editDraft = ref('')
 
 const isMine = (m: ChatMessage) => m.sender_side === props.mySide
 
+// Typing indicator: emit typing(true) on first keystroke, typing(false) after a
+// short idle window (or on send).
+let typingActive = false
+let typingTimer: ReturnType<typeof setTimeout> | null = null
+
+function stopTyping(): void {
+  if (typingTimer) { clearTimeout(typingTimer); typingTimer = null }
+  if (typingActive) {
+    typingActive = false
+    emit('typing', false)
+  }
+}
+
+function onInput(): void {
+  if (!typingActive) {
+    typingActive = true
+    emit('typing', true)
+  }
+  if (typingTimer) clearTimeout(typingTimer)
+  typingTimer = setTimeout(stopTyping, 2500)
+}
+
 function send(): void {
   const body = draft.value.trim()
   if (!body) return
   emit('send', body)
   draft.value = ''
+  stopTyping()
 }
 
 function onKeydown(e: KeyboardEvent): void {
@@ -177,6 +203,7 @@ watch(() => props.messages.length, async () => {
 
     <!-- Composer -->
     <div class="border-t border-gray-200 p-3 dark:border-zinc-800">
+      <p v-if="typingLabel" class="mb-1.5 px-1 text-xs italic text-gray-400">{{ typingLabel }}</p>
       <div class="flex items-end gap-2">
         <textarea
           v-model="draft"
@@ -184,6 +211,7 @@ watch(() => props.messages.length, async () => {
           placeholder="Type a message…"
           class="max-h-32 flex-1 resize-none rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-cyan-600 focus:outline-none focus:ring-1 focus:ring-cyan-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-100"
           @keydown="onKeydown"
+          @input="onInput"
         />
         <button
           class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-600 text-white transition-colors hover:bg-cyan-700 disabled:opacity-50"

@@ -39,6 +39,7 @@ Route::get('orders/{code}', [PublicOrderStatusController::class, 'show'])->name(
 
 // Per-order customer chat (the order code is the bearer — same model as status).
 Route::get('orders/{code}/chat', [OrderChatController::class, 'thread'])->name('orders.chat.thread');
+Route::post('orders/{code}/chat/typing', [OrderChatController::class, 'typing'])->name('orders.chat.typing');
 Route::middleware('throttle:storefront-write')->group(function () {
     Route::post('orders/{code}/chat/messages', [OrderChatController::class, 'send'])->name('orders.chat.send');
     Route::post('orders/{code}/chat/read', [OrderChatController::class, 'markRead'])->name('orders.chat.read');

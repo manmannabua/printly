@@ -65,6 +65,7 @@ Route::prefix('chat')->name('chat.')->group(function () {
     Route::get('conversations/{id}/messages', [ChatController::class, 'messages'])->name('messages');
     Route::post('conversations/{id}/messages', [ChatController::class, 'send'])->name('send');
     Route::post('conversations/{id}/read', [ChatController::class, 'markRead'])->name('read');
+    Route::post('conversations/{id}/typing', [ChatController::class, 'typing'])->name('typing');
     Route::patch('messages/{id}', [ChatController::class, 'edit'])->name('edit');
     Route::delete('messages/{id}', [ChatController::class, 'destroy'])->name('destroy');
     Route::post('messages/{id}/reactions', [ChatController::class, 'react'])->name('react');

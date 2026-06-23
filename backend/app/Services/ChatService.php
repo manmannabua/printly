@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Events\ChatMessageEvent;
 use App\Events\ChatMessageRead;
 use App\Events\ChatReactionToggled;
+use App\Events\ChatUserTyping;
 use App\Models\ChatConversation;
 use App\Models\ChatConversationParticipant;
 use App\Models\ChatMessage;
@@ -163,6 +164,12 @@ class ChatService
 
         $message->load('reactions');
         ChatReactionToggled::dispatch($message->conversation, $message->id, $message->toChatArray()['reactions']);
+    }
+
+    /** Broadcast a transient typing indicator. */
+    public function emitTyping(ChatConversation $conversation, string $side, ?string $userId, ?string $name, bool $isTyping): void
+    {
+        ChatUserTyping::dispatch($conversation, $side, $userId, $name, $isTyping);
     }
 
     /** Record a read up to a message + broadcast a receipt. */

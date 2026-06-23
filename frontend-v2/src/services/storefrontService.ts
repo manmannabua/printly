@@ -98,3 +98,7 @@ export async function markOrderChatRead(code: string, messageId: string): Promis
 export async function reactOrderChat(code: string, messageId: string, emoji: string): Promise<void> {
   await api.post(`/api/v1/orders/${code}/chat/messages/${messageId}/reactions`, { emoji })
 }
+
+export async function sendOrderTyping(code: string, isTyping: boolean): Promise<void> {
+  await api.post(`/api/v1/orders/${code}/chat/typing`, { is_typing: isTyping })
+}

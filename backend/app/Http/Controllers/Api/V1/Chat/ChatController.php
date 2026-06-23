@@ -86,6 +86,22 @@ class ChatController extends BaseController
         return $this->success(null, 'Read.');
     }
 
+    /** POST /chat/conversations/{id}/typing */
+    public function typing(Request $request, string $id): JsonResponse
+    {
+        $data = $request->validate(['is_typing' => ['required', 'boolean']]);
+        $conversation = ChatConversation::findOrFail($id);
+        $user = $request->user();
+        if (! $this->chat->userCanAccess($user, $conversation)) {
+            return $this->error('Forbidden.', 403);
+        }
+
+        $side = $user->is_admin ? 'admin' : 'store';
+        $this->chat->emitTyping($conversation, $side, (string) $user->id, $user->name ?? $user->email, (bool) $data['is_typing']);
+
+        return $this->success(null);
+    }
+
     /** PATCH /chat/messages/{id} */
     public function edit(Request $request, string $id): JsonResponse
     {

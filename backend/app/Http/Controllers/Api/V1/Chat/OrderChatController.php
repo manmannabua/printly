@@ -90,6 +90,18 @@ class OrderChatController extends BaseController
         return $this->success(null, 'Reaction updated.');
     }
 
+    /** POST /orders/{code}/chat/typing */
+    public function typing(Request $request, string $code): JsonResponse
+    {
+        $data = $request->validate(['is_typing' => ['required', 'boolean']]);
+        $order = $this->resolveOrder($code);
+        $conversation = $this->chat->ensureOrderConversation($order);
+
+        $this->chat->emitTyping($conversation, 'customer', null, null, (bool) $data['is_typing']);
+
+        return $this->success(null);
+    }
+
     private function resolveOrder(string $code): Order
     {
         return Order::where('code', $code)

@@ -37,6 +37,10 @@ export async function markRead(conversationId: string, messageId: string): Promi
   await api.post(`/api/v1/chat/conversations/${conversationId}/read`, { message_id: messageId })
 }
 
+export async function sendTyping(conversationId: string, isTyping: boolean): Promise<void> {
+  await api.post(`/api/v1/chat/conversations/${conversationId}/typing`, { is_typing: isTyping })
+}
+
 export async function editMessage(messageId: string, body: string): Promise<ChatMessage> {
   const res = await api.patch<ApiResponse<ChatMessage>>(`/api/v1/chat/messages/${messageId}`, { body })
   return res.data.data
