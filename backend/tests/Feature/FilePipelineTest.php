@@ -46,6 +46,26 @@ it('stores an upload on the private disk and queues analysis', function () {
     Queue::assertPushed(AnalyzeOrderFile::class);
 });
 
+it('streams a stored file back to a store member for printing', function () {
+    Storage::fake('private');
+
+    $path = "orders/{$this->store->id}/job.pdf";
+    Storage::disk('private')->put($path, '%PDF-1.4 fake');
+    $file = OrderFile::create([
+        'store_id' => $this->store->id,
+        'original_name' => 'job.pdf',
+        'mime' => 'application/pdf',
+        'size_bytes' => 12,
+        'storage_path' => $path,
+        'analysis_status' => OrderFile::ANALYSIS_DONE,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->get("/api/v1/stores/{$this->store->id}/files/{$file->id}/download")
+        ->assertOk()
+        ->assertDownload('job.pdf');
+});
+
 it('rejects an unsupported file type', function () {
     Storage::fake('private');
 

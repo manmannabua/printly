@@ -96,6 +96,7 @@ Route::prefix('stores/{store}')->name('stores.')->group(function () {
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::get('files/{orderFile}', [OrderFileController::class, 'show'])->name('files.show');
+        Route::get('files/{orderFile}/download', [OrderFileController::class, 'download'])->name('files.download');
     });
     Route::middleware('permission:orders.process')->group(function () {
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');

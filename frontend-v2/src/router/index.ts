@@ -59,6 +59,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/stores/StoreCatalogPage.vue'),
     meta: { requiresAuth: true, layout: 'dashboard', title: 'Catalog', permission: 'catalog.view' },
   },
+  {
+    path: '/stores/:id/queue',
+    name: 'store-queue',
+    component: () => import('@/pages/orders/QueueBoardPage.vue'),
+    meta: { requiresAuth: true, layout: 'dashboard', title: 'Order Queue', permission: 'orders.view' },
+  },
 
   // Administration
   {

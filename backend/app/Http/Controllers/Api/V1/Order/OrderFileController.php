@@ -9,6 +9,8 @@ use App\Jobs\AnalyzeOrderFile;
 use App\Models\OrderFile;
 use App\Models\Store;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OrderFileController extends BaseController
 {
@@ -46,5 +48,20 @@ class OrderFileController extends BaseController
         abort_unless($orderFile->store_id === $store->id, 404, 'File not found.');
 
         return $this->success(new OrderFileResource($orderFile));
+    }
+
+    /**
+     * Stream the original file to staff for manual printing. Private disk, so it
+     * is never publicly reachable — only members of the owning store may download.
+     */
+    public function download(Store $store, OrderFile $orderFile): StreamedResponse
+    {
+        $this->authorizeStore($store);
+        abort_unless($orderFile->store_id === $store->id, 404, 'File not found.');
+
+        $disk = Storage::disk('private');
+        abort_unless($disk->exists($orderFile->storage_path), 404, 'File is no longer available.');
+
+        return $disk->download($orderFile->storage_path, $orderFile->original_name);
     }
 }

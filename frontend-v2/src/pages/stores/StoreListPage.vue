@@ -177,6 +177,9 @@ async function confirmDelete(): Promise<void> {
             <DropdownMenuItem @click="router.push(`/stores/${(row as unknown as Store).id}/catalog`)">
               Manage catalog
             </DropdownMenuItem>
+            <DropdownMenuItem @click="router.push(`/stores/${(row as unknown as Store).id}/queue`)">
+              Order queue
+            </DropdownMenuItem>
             <DropdownMenuItem v-if="auth.can('stores.update')" @click="openEdit(row as unknown as Store)">
               Edit
             </DropdownMenuItem>

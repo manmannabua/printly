@@ -197,3 +197,48 @@ export interface PublicOrder {
   ready_at: string | null
   completed_at: string | null
 }
+
+// ── Orders (staff dashboard) ───────────────────────────────────────────────────
+
+export interface OrderItem {
+  id: string
+  product_id: string | null
+  product_name: string
+  pricing_mode: PricingMode
+  quantity: number
+  unit_breakdown: QuoteBreakdownLine[] | null
+  spec_selections: unknown
+  line_total_cents: number
+  files?: OrderFile[]
+}
+
+export interface OrderEvent {
+  id: string
+  from_status: OrderStatus | null
+  to_status: OrderStatus
+  actor_type: 'system' | 'staff' | 'customer'
+  actor_id: string | null
+  meta: Record<string, unknown> | null
+  created_at?: string
+}
+
+export interface Order {
+  id: string
+  store_id: string
+  customer_id: string | null
+  code: string
+  status: OrderStatus
+  payment_status: string
+  pay_method: PayMethod | null
+  subtotal_cents: number
+  fee_cents: number
+  total_cents: number
+  notes: string | null
+  placed_at: string | null
+  accepted_at: string | null
+  ready_at: string | null
+  completed_at: string | null
+  items?: OrderItem[]
+  events?: OrderEvent[]
+  created_at?: string
+}
