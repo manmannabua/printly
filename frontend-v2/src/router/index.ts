@@ -23,6 +23,20 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: false, layout: 'login', title: 'Reset Password' },
   },
 
+  // ── Public storefront (guest, no auth) ────────────────────────────────
+  {
+    path: '/s/:slug',
+    name: 'storefront',
+    component: () => import('@/pages/storefront/StorefrontPage.vue'),
+    meta: { requiresAuth: false, public: true, layout: 'storefront', title: 'Order Prints' },
+  },
+  {
+    path: '/orders/:code',
+    name: 'order-status',
+    component: () => import('@/pages/storefront/OrderStatusPage.vue'),
+    meta: { requiresAuth: false, public: true, layout: 'storefront', title: 'Order Status' },
+  },
+
   // ── Authenticated routes ─────────────────────────────────────────────
   { path: '/', redirect: '/dashboard' },
   {
@@ -97,9 +111,11 @@ router.beforeEach(async (to) => {
   const requiresAuth = to.meta.requiresAuth !== false
   const requiredPermission = to.meta.permission as string | undefined
 
-  // Redirect authenticated users away from guest-only pages
+  // Redirect authenticated users away from guest-only pages. Public pages
+  // (storefront, order tracking) stay reachable for everyone.
   const guestOnlyBypass = ['reset-password']
-  if (!requiresAuth && authStore.isAuthenticated && !guestOnlyBypass.includes(String(to.name)) && to.name !== 'not-found') {
+  const isPublic = to.meta.public === true
+  if (!requiresAuth && !isPublic && authStore.isAuthenticated && !guestOnlyBypass.includes(String(to.name)) && to.name !== 'not-found') {
     return { name: 'dashboard' }
   }
 

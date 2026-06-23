@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { setToastRef } from '@/composables/useToast'
 import LoginLayout from '@/layouts/LoginLayout.vue'
 import GuestLayout from '@/layouts/GuestLayout.vue'
+import StorefrontLayout from '@/layouts/StorefrontLayout.vue'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import AppToast from '@/components/common/AppToast.vue'
 import AppSpinner from '@/components/common/AppSpinner.vue'
@@ -14,10 +15,11 @@ const authStore = useAuthStore()
 
 const currentLayout = computed(() => {
   switch (route.meta.layout) {
-    case 'login':     return LoginLayout
-    case 'guest':     return GuestLayout
-    case 'dashboard': return DashboardLayout
-    default:          return 'div'
+    case 'login':      return LoginLayout
+    case 'guest':      return GuestLayout
+    case 'storefront': return StorefrontLayout
+    case 'dashboard':  return DashboardLayout
+    default:           return 'div'
   }
 })
 

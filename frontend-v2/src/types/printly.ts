@@ -101,3 +101,99 @@ export interface Quote {
   quantity?: number
   breakdown: QuoteBreakdownLine[]
 }
+
+// ── Storefront (public, guest-facing) ──────────────────────────────────────────
+
+export interface ProductOptionChoice {
+  label: string
+  price_delta_cents?: number
+}
+
+export interface ProductOption {
+  id: string
+  name: string
+  choices: ProductOptionChoice[]
+}
+
+export interface StorefrontPriceRule {
+  attribute: string
+  match_value: string
+  modifier_type: ModifierType
+  amount_cents: number | null
+  multiplier: number | null
+}
+
+export interface StorefrontProduct {
+  id: string
+  name: string
+  pricing_mode: PricingMode
+  base_price_cents: number
+  price_rules: StorefrontPriceRule[]
+  options: ProductOption[]
+}
+
+export interface StorefrontProductType {
+  id: string
+  name: string
+  pricing_mode: PricingMode
+  fulfillment: Fulfillment
+  products: StorefrontProduct[]
+}
+
+export interface StorefrontStore {
+  name: string
+  slug: string
+  currency: string | null
+  timezone: string | null
+  address: string | null
+  settings: {
+    accepts_guest: boolean
+    pay_on_pickup_allowed: boolean
+  }
+}
+
+export interface StorefrontCatalog {
+  store: StorefrontStore
+  product_types: StorefrontProductType[]
+}
+
+export type AnalysisStatus = 'pending' | 'done' | 'failed'
+
+export interface OrderFile {
+  id: string
+  store_id: string
+  order_item_id: string | null
+  original_name: string
+  mime: string | null
+  size_bytes: number
+  page_count: number | null
+  paper_size: string | null
+  is_color: boolean | null
+  analysis_status: AnalysisStatus
+  analysis_error: string | null
+  created_at?: string
+}
+
+export type OrderStatus =
+  | 'draft' | 'pending_payment' | 'paid' | 'accepted' | 'in_progress'
+  | 'ready' | 'completed' | 'cancelled' | 'rejected' | 'failed' | 'refunded'
+
+export type PayMethod = 'gcash' | 'card' | 'maya' | 'cash_on_pickup'
+
+export interface PlacedOrder {
+  code: string
+  status: OrderStatus
+  payment_status: string
+  total_cents: number
+}
+
+export interface PublicOrder {
+  code: string
+  status: OrderStatus
+  payment_status: string
+  total_cents: number
+  store: { name: string | null, slug: string | null }
+  placed_at: string | null
+  ready_at: string | null
+  completed_at: string | null
+}
