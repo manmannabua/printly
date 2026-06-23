@@ -53,7 +53,8 @@ async function onTransition(order: Order, newStatus: OrderStatus, reason?: strin
   try {
     const updated = await transitionOrder(storeId, order.id, newStatus, reason)
     updateOrder(order.id, updated)
-    toast.success(`Order ${order.code} → ${statusLabel(newStatus)}`)
+    // Reflect the real resulting status (e.g. a 'paid' drop auto-accepts).
+    toast.success(`Order ${order.code} → ${statusLabel(updated.status)}`)
   } catch (e) {
     toast.error(getErrorMessage(e))
     void load() // revert to server truth
@@ -254,14 +255,14 @@ onUnmounted(() => {
             leave-to-class="translate-x-full"
             appear
           >
-            <aside class="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-white shadow-xl dark:bg-zinc-900 sm:w-[26rem]">
-              <div class="flex items-center justify-between gap-2 border-b border-gray-200 px-4 py-3 dark:border-zinc-800">
+            <aside class="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-white shadow-xl dark:bg-gray-900 sm:w-[26rem]">
+              <div class="flex items-center justify-between gap-2 border-b border-gray-200 px-4 py-3 dark:border-gray-800">
                 <div class="min-w-0">
                   <p class="text-sm font-semibold text-gray-900 dark:text-white">Customer chat</p>
                   <p class="font-mono text-xs text-gray-400">Order {{ chatOrder.code }}</p>
                 </div>
                 <button
-                  class="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 dark:hover:bg-zinc-800"
+                  class="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
                   title="Close"
                   @click="closeChat"
                 >

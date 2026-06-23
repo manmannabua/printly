@@ -156,6 +156,11 @@ class OrderService
 
         if ($to === Order::STATUS_PAID) {
             $this->notifyStore($order, 'order_paid', 'Payment received', "Order {$order->code} has been paid.");
+
+            // Auto-accept: a paid order moves straight into the store's accepted
+            // queue, so the board needs no separate "Paid" resting column. Staff
+            // can still reject/fail it from accepted.
+            return $this->transition($order, Order::STATUS_ACCEPTED, OrderEvent::ACTOR_SYSTEM, null, ['auto' => 'paid_accepted']);
         }
 
         return $order;

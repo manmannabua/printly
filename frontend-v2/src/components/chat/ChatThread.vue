@@ -177,7 +177,7 @@ onUnmounted(() => {
             class="max-w-[78%] rounded-2xl px-3.5 py-2 text-sm"
             :class="isMine(m)
               ? 'rounded-br-sm bg-cyan-600 text-white'
-              : 'rounded-bl-sm bg-gray-100 text-gray-900 dark:bg-zinc-800 dark:text-gray-100'"
+              : 'rounded-bl-sm bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100'"
           >
             <template v-if="editingId === m.id">
               <textarea
@@ -224,17 +224,17 @@ onUnmounted(() => {
           <!-- Hover actions -->
           <div v-if="!m.is_deleted && editingId !== m.id" class="relative flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
             <button
-              class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-zinc-800"
+              class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
               title="React"
               @click="toggleReact(m, $event)"
             >
               <AppIcon name="mood-smile" :size="15" />
             </button>
             <template v-if="canModifyMessage(m)">
-              <button class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-zinc-800" title="Edit" @click="startEdit(m)">
+              <button class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800" title="Edit" @click="startEdit(m)">
                 <AppIcon name="pencil" :size="15" />
               </button>
-              <button class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-rose-500 dark:hover:bg-zinc-800" title="Delete" @click="emit('remove', m.id)">
+              <button class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-rose-500 dark:hover:bg-gray-800" title="Delete" @click="emit('remove', m.id)">
                 <AppIcon name="trash" :size="15" />
               </button>
             </template>
@@ -246,7 +246,7 @@ onUnmounted(() => {
           <button
             v-for="r in m.reactions"
             :key="r.emoji"
-            class="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-1.5 py-0.5 text-xs dark:border-zinc-700 dark:bg-zinc-800"
+            class="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-1.5 py-0.5 text-xs dark:border-gray-700 dark:bg-gray-800"
             @click="react(m.id, r.emoji)"
           >
             <span>{{ r.emoji }}</span>
@@ -257,12 +257,12 @@ onUnmounted(() => {
     </div>
 
     <!-- Composer -->
-    <div class="border-t border-gray-200 p-3 dark:border-zinc-800">
+    <div class="border-t border-gray-200 p-3 dark:border-gray-800">
       <p v-if="typingLabel" class="mb-1.5 px-1 text-xs italic text-gray-400">{{ typingLabel }}</p>
       <div class="flex items-end gap-2">
         <input ref="fileInput" type="file" class="hidden" @change="onFilePicked">
         <button
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-zinc-800"
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
           title="Attach a file"
           @click="fileInput?.click()"
         >
@@ -272,7 +272,7 @@ onUnmounted(() => {
           v-model="draft"
           rows="1"
           placeholder="Type a message…"
-          class="max-h-32 flex-1 resize-none rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-cyan-600 focus:outline-none focus:ring-1 focus:ring-cyan-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-100"
+          class="max-h-32 flex-1 resize-none rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-cyan-600 focus:outline-none focus:ring-1 focus:ring-cyan-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
           @keydown="onKeydown"
           @input="onInput"
         />
@@ -292,13 +292,13 @@ onUnmounted(() => {
       <template v-if="reactingFor">
         <div class="fixed inset-0 z-[9998]" @click="reactingFor = null" />
         <div
-          class="fixed z-[9999] flex justify-center gap-1 rounded-full border border-gray-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+          class="fixed z-[9999] flex justify-center gap-1 rounded-full border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-700 dark:bg-gray-900"
           :style="reactStyle"
         >
           <button
             v-for="e in QUICK_EMOJIS"
             :key="e"
-            class="rounded-full px-1.5 py-0.5 text-base hover:bg-gray-100 dark:hover:bg-zinc-800"
+            class="rounded-full px-1.5 py-0.5 text-base hover:bg-gray-100 dark:hover:bg-gray-800"
             @click="react(reactingFor, e)"
           >{{ e }}</button>
         </div>

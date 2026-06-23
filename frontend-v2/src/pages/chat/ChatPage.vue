@@ -118,13 +118,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex h-[calc(100vh-7rem)] overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+  <div class="flex h-[calc(100vh-7rem)] overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
     <!-- Conversation list -->
     <aside
-      class="w-full shrink-0 border-r border-gray-200 dark:border-zinc-800 sm:w-72"
+      class="w-full shrink-0 border-r border-gray-200 dark:border-gray-800 sm:w-72"
       :class="activeId ? 'hidden sm:block' : 'block'"
     >
-      <div class="border-b border-gray-200 px-4 py-3 dark:border-zinc-800">
+      <div class="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
         <h2 class="font-display text-lg font-bold text-gray-900 dark:text-white">Messages</h2>
       </div>
       <div class="overflow-y-auto">
@@ -137,8 +137,8 @@ onMounted(async () => {
         <button
           v-for="c in conversations"
           :key="c.id"
-          class="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left transition-colors dark:border-zinc-800/60"
-          :class="activeId === c.id ? 'bg-cyan-50 dark:bg-cyan-950/20' : 'hover:bg-gray-50 dark:hover:bg-zinc-800/50'"
+          class="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left transition-colors dark:border-gray-800/60"
+          :class="activeId === c.id ? 'bg-cyan-50 dark:bg-cyan-950/20' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'"
           @click="openConversation(c)"
         >
           <span
@@ -164,8 +164,8 @@ onMounted(async () => {
     <!-- Thread -->
     <section class="flex min-w-0 flex-1 flex-col" :class="activeId ? 'flex' : 'hidden sm:flex'">
       <template v-if="active">
-        <div class="flex items-center gap-2 border-b border-gray-200 px-4 py-3 dark:border-zinc-800">
-          <button class="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 sm:hidden" @click="activeId = null">
+        <div class="flex items-center gap-2 border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+          <button class="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 sm:hidden" @click="activeId = null">
             <AppIcon name="arrow-left" :size="18" />
           </button>
           <div>

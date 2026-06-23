@@ -49,7 +49,7 @@ function itemsSummary(o: Order): string {
         <div class="flex items-center justify-between gap-2">
           <span class="font-mono text-sm font-semibold text-gray-900 dark:text-gray-100">{{ order.code }}</span>
           <button
-            class="flex-shrink-0 rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-primary-600 dark:hover:bg-gray-700"
+            class="inline-flex shrink-0 items-center justify-center rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-primary-600 dark:hover:bg-gray-700"
             title="Open chat with customer"
             @click.stop="$emit('chat', order)"
           >

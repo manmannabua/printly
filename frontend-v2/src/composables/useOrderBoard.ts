@@ -17,8 +17,10 @@ export interface OrderColumnData extends OrderColumnDef {
 
 export const ORDER_COLUMNS: OrderColumnDef[] = [
   { key: 'new', label: 'New', statuses: ['pending_payment'] },
-  { key: 'paid', label: 'Paid', statuses: ['paid'] },
-  { key: 'accepted', label: 'Accepted', statuses: ['accepted'] },
+  // Paid orders auto-accept (OrderService), so they rest here rather than in a
+  // separate Paid column; the status dot still distinguishes a transient 'paid'.
+  // Dragging a New card here resolves to 'paid', which the backend auto-accepts.
+  { key: 'accepted', label: 'Accepted', statuses: ['accepted', 'paid'] },
   { key: 'printing', label: 'Printing', statuses: ['in_progress'] },
   { key: 'ready', label: 'Ready', statuses: ['ready'] },
   { key: 'completed', label: 'Completed', statuses: ['completed'] },
