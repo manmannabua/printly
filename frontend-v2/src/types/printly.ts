@@ -11,10 +11,30 @@ export type Upload = {
 /** Embedded 3D / video tour providers (reused by AppMultiUpload / tour embed util). */
 export type TourProvider = 'matterport' | 'youtube' | 'vimeo' | 'kuula'
 
-/** High-level counts shown on the admin dashboard (skeleton). */
-export interface DashboardCounts {
-  users: number
-  active_users: number
+/** Role-aware dashboard metrics (admin = platform-wide, store = own stores). */
+export interface DashboardKpi {
+  key: string
+  label: string
+  value: number
+  icon?: string
+  format?: 'money'
+  variant?: 'default' | 'success' | 'warning' | 'danger'
+}
+
+export interface DashboardAlert {
+  label: string
+  count: number
+  severity: 'danger' | 'warning' | 'info'
+}
+
+export interface DashboardData {
+  role: 'admin' | 'store'
+  kpis: DashboardKpi[]
+  orders_series: { date: string, orders: number }[]
+  revenue_series: { date: string, revenue: number }[]
+  status_breakdown: { status: string, label: string, count: number }[]
+  top_products: { name: string, qty: number }[]
+  alerts: DashboardAlert[]
 }
 
 // ── Stores & catalog ─────────────────────────────────────────────────────────
