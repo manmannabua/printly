@@ -11,6 +11,9 @@ class ChatMessage extends Model
 {
     use HasUuid;
 
+    /** How long after sending a message stays editable/deletable by its author. */
+    public const EDIT_WINDOW_MINUTES = 15;
+
     protected $fillable = [
         'conversation_id',
         'sender_user_id',
@@ -47,6 +50,12 @@ class ChatMessage extends Model
         return $this->hasMany(ChatMessageAttachment::class, 'message_id');
     }
 
+    /** Whether the author may still edit/delete this message (time-boxed). */
+    public function isWithinEditWindow(): bool
+    {
+        return $this->created_at->gt(now()->subMinutes(self::EDIT_WINDOW_MINUTES));
+    }
+
     /**
      * Serialise for API responses and broadcast payloads. Deleted messages keep
      * their envelope (so the thread shows "message deleted") but drop the body.
@@ -67,6 +76,7 @@ class ChatMessage extends Model
             'is_deleted' => $this->deleted_at !== null,
             'edited_at' => $this->edited_at?->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),
+            'editable_until' => $this->created_at->copy()->addMinutes(self::EDIT_WINDOW_MINUTES)->toIso8601String(),
             'reactions' => $this->relationLoaded('reactions')
                 ? $this->reactions
                     ->groupBy('emoji')

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, watch, computed } from 'vue'
+import { ref, nextTick, watch, computed, onMounted, onUnmounted } from 'vue'
 import AppIcon from '@/components/common/AppIcon.vue'
 import type { ChatMessage, ChatSide } from '@/types/chat'
 
@@ -50,6 +50,17 @@ const editingId = ref<string | null>(null)
 const editDraft = ref('')
 
 const isMine = (m: ChatMessage) => m.sender_side === props.mySide
+
+// Edit/delete are time-boxed: the author may only modify a message until its
+// `editable_until` timestamp (enforced server-side too). A coarse ticking clock
+// makes the buttons disappear once the window lapses without a re-render.
+const now = ref(Date.now())
+let nowTimer: ReturnType<typeof setInterval> | null = null
+
+function canModifyMessage(m: ChatMessage): boolean {
+  if (!props.canModify || !isMine(m)) return false
+  return !m.editable_until || now.value < new Date(m.editable_until).getTime()
+}
 
 // Typing indicator: emit typing(true) on first keystroke, typing(false) after a
 // short idle window (or on send).
@@ -113,6 +124,13 @@ const hasMessages = computed(() => props.messages.length > 0)
 watch(() => props.messages.length, async () => {
   await nextTick()
   if (scrollEl.value) scrollEl.value.scrollTop = scrollEl.value.scrollHeight
+})
+
+onMounted(() => {
+  nowTimer = setInterval(() => { now.value = Date.now() }, 30000)
+})
+onUnmounted(() => {
+  if (nowTimer) clearInterval(nowTimer)
 })
 </script>
 
@@ -194,7 +212,7 @@ watch(() => props.messages.length, async () => {
             >
               <AppIcon name="mood-smile" :size="15" />
             </button>
-            <template v-if="canModify && isMine(m)">
+            <template v-if="canModifyMessage(m)">
               <button class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-zinc-800" title="Edit" @click="startEdit(m)">
                 <AppIcon name="pencil" :size="15" />
               </button>

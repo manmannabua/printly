@@ -146,6 +146,9 @@ class ChatController extends BaseController
         if ($message->sender_user_id !== $request->user()->id) {
             return $this->error('You can only edit your own messages.', 403);
         }
+        if (! $message->isWithinEditWindow()) {
+            return $this->error('This message can no longer be edited.', 422);
+        }
 
         return $this->success($this->chat->editMessage($message, $data['body'])->toChatArray(), 'Updated.');
     }
@@ -155,8 +158,14 @@ class ChatController extends BaseController
     {
         $message = ChatMessage::findOrFail($id);
         $user = $request->user();
-        if ($message->sender_user_id !== $user->id && ! $user->is_admin) {
+        $isOwner = $message->sender_user_id === $user->id;
+        if (! $isOwner && ! $user->is_admin) {
             return $this->error('You can only delete your own messages.', 403);
+        }
+        // The time window applies to authors deleting their own messages; admins
+        // retain moderation on others' messages with no time limit.
+        if ($isOwner && ! $message->isWithinEditWindow()) {
+            return $this->error('This message can no longer be deleted.', 422);
         }
 
         $this->chat->deleteMessage($message);

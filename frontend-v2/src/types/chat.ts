@@ -26,6 +26,8 @@ export interface ChatMessage {
   is_deleted: boolean
   edited_at: string | null
   created_at: string
+  /** ISO timestamp until which the author may still edit/delete this message. */
+  editable_until: string
   reactions: ChatReactionSummary[]
   attachments: ChatAttachment[]
 }
