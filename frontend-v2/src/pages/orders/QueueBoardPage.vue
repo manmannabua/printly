@@ -134,24 +134,44 @@ async function markReadLatest(): Promise<void> {
 
 async function onSend(body: string): Promise<void> {
   if (!chatConversation.value) return
-  upsert(await chatService.sendMessage(chatConversation.value.id, body))
+  try {
+    upsert(await chatService.sendMessage(chatConversation.value.id, body))
+  } catch (e) {
+    toast.error(getErrorMessage(e))
+  }
 }
 
 async function onReact(messageId: string, emoji: string): Promise<void> {
-  await chatService.toggleReaction(messageId, emoji)
+  try {
+    await chatService.toggleReaction(messageId, emoji)
+  } catch (e) {
+    toast.error(getErrorMessage(e))
+  }
 }
 
 async function onEdit(messageId: string, body: string): Promise<void> {
-  upsert(await chatService.editMessage(messageId, body))
+  try {
+    upsert(await chatService.editMessage(messageId, body))
+  } catch (e) {
+    toast.error(getErrorMessage(e))
+  }
 }
 
 async function onRemove(messageId: string): Promise<void> {
-  await chatService.deleteMessage(messageId)
+  try {
+    await chatService.deleteMessage(messageId)
+  } catch (e) {
+    toast.error(getErrorMessage(e))
+  }
 }
 
 async function onAttach(file: File): Promise<void> {
   if (!chatConversation.value) return
-  upsert(await chatService.uploadAttachment(chatConversation.value.id, file))
+  try {
+    upsert(await chatService.uploadAttachment(chatConversation.value.id, file))
+  } catch (e) {
+    toast.error(getErrorMessage(e))
+  }
 }
 
 async function onTyping(isTyping: boolean): Promise<void> {

@@ -46,6 +46,24 @@ const QUICK_EMOJIS = ['👍', '❤️', '😂', '🎉', '✅']
 const draft = ref('')
 const scrollEl = ref<HTMLElement | null>(null)
 const reactingFor = ref<string | null>(null)
+// Fixed viewport coords for the (teleported) emoji picker so it can't be clipped
+// by the thread's scroll container or run off the drawer edge.
+const reactStyle = ref<Record<string, string>>({})
+const REACT_POPOVER_WIDTH = 196
+
+function toggleReact(m: ChatMessage, ev: MouseEvent): void {
+  if (reactingFor.value === m.id) {
+    reactingFor.value = null
+    return
+  }
+  reactingFor.value = m.id
+  const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect()
+  let left = rect.left + rect.width / 2 - REACT_POPOVER_WIDTH / 2
+  left = Math.max(8, Math.min(left, window.innerWidth - REACT_POPOVER_WIDTH - 8))
+  // Prefer above the button; flip below if there isn't room at the top.
+  const top = rect.top - 44 < 8 ? rect.bottom + 8 : rect.top - 44
+  reactStyle.value = { left: `${left}px`, top: `${top}px`, width: `${REACT_POPOVER_WIDTH}px` }
+}
 const editingId = ref<string | null>(null)
 const editDraft = ref('')
 
@@ -208,7 +226,7 @@ onUnmounted(() => {
             <button
               class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-zinc-800"
               title="React"
-              @click="reactingFor = reactingFor === m.id ? null : m.id"
+              @click="toggleReact(m, $event)"
             >
               <AppIcon name="mood-smile" :size="15" />
             </button>
@@ -220,19 +238,6 @@ onUnmounted(() => {
                 <AppIcon name="trash" :size="15" />
               </button>
             </template>
-
-            <div
-              v-if="reactingFor === m.id"
-              class="absolute bottom-7 z-10 flex gap-1 rounded-full border border-gray-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
-              :class="isMine(m) ? 'right-0' : 'left-0'"
-            >
-              <button
-                v-for="e in QUICK_EMOJIS"
-                :key="e"
-                class="rounded-full px-1.5 py-0.5 text-base hover:bg-gray-100 dark:hover:bg-zinc-800"
-                @click="react(m.id, e)"
-              >{{ e }}</button>
-            </div>
           </div>
         </div>
 
@@ -280,5 +285,24 @@ onUnmounted(() => {
         </button>
       </div>
     </div>
+
+    <!-- Emoji picker — teleported + fixed so it never gets clipped by the scroll
+         container and always stays within the viewport. -->
+    <Teleport to="body">
+      <template v-if="reactingFor">
+        <div class="fixed inset-0 z-[9998]" @click="reactingFor = null" />
+        <div
+          class="fixed z-[9999] flex justify-center gap-1 rounded-full border border-gray-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+          :style="reactStyle"
+        >
+          <button
+            v-for="e in QUICK_EMOJIS"
+            :key="e"
+            class="rounded-full px-1.5 py-0.5 text-base hover:bg-gray-100 dark:hover:bg-zinc-800"
+            @click="react(reactingFor, e)"
+          >{{ e }}</button>
+        </div>
+      </template>
+    </Teleport>
   </div>
 </template>

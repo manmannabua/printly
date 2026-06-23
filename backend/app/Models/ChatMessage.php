@@ -83,9 +83,10 @@ class ChatMessage extends Model
                     ->map(fn ($group, $emoji) => [
                         'emoji' => $emoji,
                         'count' => $group->count(),
-                        'user_ids' => $group->pluck('user_id')->filter()->values(),
+                        'user_ids' => $group->pluck('user_id')->filter()->values()->all(),
                     ])
                     ->values()
+                    ->all()
                 : [],
             'attachments' => $this->relationLoaded('attachments')
                 ? $this->attachments->map(fn ($a) => [
