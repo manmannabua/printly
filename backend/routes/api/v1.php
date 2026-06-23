@@ -2,9 +2,14 @@
 
 use App\Http\Controllers\Api\V1\AuditLogController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\Catalog\PriceRuleController;
+use App\Http\Controllers\Api\V1\Catalog\ProductController;
+use App\Http\Controllers\Api\V1\Catalog\ProductTypeController;
+use App\Http\Controllers\Api\V1\Catalog\QuoteController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\PermissionController;
 use App\Http\Controllers\Api\V1\RoleController;
+use App\Http\Controllers\Api\V1\StoreController;
 use App\Http\Controllers\Api\V1\UploadController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
@@ -42,6 +47,48 @@ Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard'
 // ── Uploads (images / documents) ────────────────────────────────────────
 Route::post('uploads', [UploadController::class, 'store'])->name('uploads.store');
 Route::delete('uploads', [UploadController::class, 'destroy'])->name('uploads.destroy');
+
+// ── Stores ──────────────────────────────────────────────────────────────
+Route::middleware('permission:stores.view')->group(function () {
+    Route::get('stores', [StoreController::class, 'index'])->name('stores.index');
+    Route::get('stores/{store}', [StoreController::class, 'show'])->name('stores.show');
+});
+Route::post('stores', [StoreController::class, 'store'])->middleware('permission:stores.create')->name('stores.store');
+Route::put('stores/{store}', [StoreController::class, 'update'])->middleware('permission:stores.update')->name('stores.update');
+Route::patch('stores/{store}', [StoreController::class, 'update'])->middleware('permission:stores.update');
+Route::delete('stores/{store}', [StoreController::class, 'destroy'])->middleware('permission:stores.delete')->name('stores.destroy');
+
+// ── Catalog (nested under a store): product types / products / price rules ─
+Route::prefix('stores/{store}')->name('stores.')->group(function () {
+    // Product types
+    Route::middleware('permission:catalog.view')->group(function () {
+        Route::get('product-types', [ProductTypeController::class, 'index'])->name('product-types.index');
+        Route::get('product-types/{productType}', [ProductTypeController::class, 'show'])->name('product-types.show');
+    });
+    Route::post('product-types', [ProductTypeController::class, 'store'])->middleware('permission:catalog.create')->name('product-types.store');
+    Route::put('product-types/{productType}', [ProductTypeController::class, 'update'])->middleware('permission:catalog.update')->name('product-types.update');
+    Route::patch('product-types/{productType}', [ProductTypeController::class, 'update'])->middleware('permission:catalog.update');
+    Route::delete('product-types/{productType}', [ProductTypeController::class, 'destroy'])->middleware('permission:catalog.delete')->name('product-types.destroy');
+
+    // Products
+    Route::middleware('permission:catalog.view')->group(function () {
+        Route::get('products', [ProductController::class, 'index'])->name('products.index');
+        Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show');
+        Route::post('products/{product}/quote', QuoteController::class)->name('products.quote');
+        Route::get('products/{product}/price-rules', [PriceRuleController::class, 'index'])->name('products.price-rules.index');
+    });
+    Route::post('products', [ProductController::class, 'store'])->middleware('permission:catalog.create')->name('products.store');
+    Route::put('products/{product}', [ProductController::class, 'update'])->middleware('permission:catalog.update')->name('products.update');
+    Route::patch('products/{product}', [ProductController::class, 'update'])->middleware('permission:catalog.update');
+    Route::delete('products/{product}', [ProductController::class, 'destroy'])->middleware('permission:catalog.delete')->name('products.destroy');
+
+    // Price rules
+    Route::middleware('permission:catalog.update')->group(function () {
+        Route::post('products/{product}/price-rules', [PriceRuleController::class, 'store'])->name('products.price-rules.store');
+        Route::put('products/{product}/price-rules/{priceRule}', [PriceRuleController::class, 'update'])->name('products.price-rules.update');
+        Route::delete('products/{product}/price-rules/{priceRule}', [PriceRuleController::class, 'destroy'])->name('products.price-rules.destroy');
+    });
+});
 
 // ── Administration: users / roles / permissions / audit ─────────────────
 Route::middleware('permission:users.view')->group(function () {
