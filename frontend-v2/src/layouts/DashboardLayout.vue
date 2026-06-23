@@ -127,7 +127,7 @@ const roleLabel = computed(() => authStore.primaryRole ?? 'User')
     </aside>
 
     <!-- Main column -->
-    <div class="flex flex-1 flex-col lg:pl-64">
+    <div class="flex min-w-0 flex-1 flex-col lg:pl-64">
       <header class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-gray-800 dark:bg-gray-900">
         <button
           class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
@@ -148,7 +148,7 @@ const roleLabel = computed(() => authStore.primaryRole ?? 'User')
         </div>
       </header>
 
-      <main class="flex-1 p-4 sm:p-6">
+      <main class="min-w-0 flex-1 p-4 sm:p-6">
         <router-view />
       </main>
     </div>
