@@ -16,7 +16,7 @@ class ProductTypeController extends BaseController
 {
     public function index(Request $request, Store $store): JsonResponse
     {
-        $query = $store->productTypes()->withCount('products');
+        $query = ProductType::query()->where('store_id', $store->id)->withCount('products');
 
         $this->applyFilters($query, $request, [
             'search' => ['name'],

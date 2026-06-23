@@ -32,6 +32,20 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, layout: 'dashboard', title: 'Dashboard' },
   },
 
+  // Catalog
+  {
+    path: '/stores',
+    name: 'stores',
+    component: () => import('@/pages/stores/StoreListPage.vue'),
+    meta: { requiresAuth: true, layout: 'dashboard', title: 'Stores', permission: 'stores.view' },
+  },
+  {
+    path: '/stores/:id/catalog',
+    name: 'store-catalog',
+    component: () => import('@/pages/stores/StoreCatalogPage.vue'),
+    meta: { requiresAuth: true, layout: 'dashboard', title: 'Catalog', permission: 'catalog.view' },
+  },
+
   // Administration
   {
     path: '/users',

@@ -31,6 +31,12 @@ const groups: NavGroup[] = [
     items: [{ label: 'Dashboard', to: '/dashboard', icon: 'home' }],
   },
   {
+    label: 'Catalog',
+    items: [
+      { label: 'Stores', to: '/stores', icon: 'building', permission: 'stores.view' },
+    ],
+  },
+  {
     label: 'Administration',
     items: [
       { label: 'Users', to: '/users', icon: 'users-group', permission: 'users.view' },
