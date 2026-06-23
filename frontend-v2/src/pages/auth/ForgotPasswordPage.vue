@@ -36,10 +36,11 @@ async function handleSubmit(): Promise<void> {
 
 <template>
   <div>
-    <h2 class="mb-2 text-center text-xl font-semibold text-gray-900 dark:text-gray-100">
+    <p class="font-mono text-[11px] uppercase tracking-[0.3em] text-c-primary">Reset link</p>
+    <h2 class="mb-2 mt-2 font-display text-2xl font-bold text-gray-900 dark:text-white">
       Forgot your password?
     </h2>
-    <p class="mb-6 text-center text-sm text-gray-500 dark:text-gray-400">
+    <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">
       Enter your email and we'll send you a reset link.
     </p>
 
@@ -74,7 +75,7 @@ async function handleSubmit(): Promise<void> {
             required
             autocomplete="email"
             placeholder="you@company.com"
-            class="block w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-100 dark:placeholder-gray-500"
+            class="block w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-cyan-600 focus:outline-none focus:ring-1 focus:ring-cyan-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-100 dark:placeholder-gray-500"
             :class="{ 'border-red-500 dark:border-red-400': errors.email }"
           />
         </div>

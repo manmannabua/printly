@@ -49,10 +49,11 @@ async function handleSubmit(): Promise<void> {
 
 <template>
   <div>
-    <h2 class="mb-2 text-center text-xl font-semibold text-gray-900 dark:text-gray-100">
+    <p class="font-mono text-[11px] uppercase tracking-[0.3em] text-c-primary">New credentials</p>
+    <h2 class="mb-2 mt-2 font-display text-2xl font-bold text-gray-900 dark:text-white">
       Reset your password
     </h2>
-    <p class="mb-6 text-center text-sm text-gray-500 dark:text-gray-400">
+    <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">
       Enter your new password below.
     </p>
 
@@ -72,7 +73,7 @@ async function handleSubmit(): Promise<void> {
             type="email"
             required
             autocomplete="email"
-            class="block w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-100 dark:placeholder-gray-500"
+            class="block w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-cyan-600 focus:outline-none focus:ring-1 focus:ring-cyan-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-100 dark:placeholder-gray-500"
             :class="{ 'border-red-500 dark:border-red-400': errors.email }"
           />
         </div>
@@ -97,7 +98,7 @@ async function handleSubmit(): Promise<void> {
             required
             autocomplete="new-password"
             placeholder="Minimum 8 characters"
-            class="block w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-10 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-100 dark:placeholder-gray-500"
+            class="block w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-10 text-sm text-gray-900 placeholder-gray-400 focus:border-cyan-600 focus:outline-none focus:ring-1 focus:ring-cyan-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-100 dark:placeholder-gray-500"
             :class="{ 'border-red-500 dark:border-red-400': errors.password }"
           />
           <button
@@ -130,7 +131,7 @@ async function handleSubmit(): Promise<void> {
             required
             autocomplete="new-password"
             placeholder="Confirm your password"
-            class="block w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-10 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-100 dark:placeholder-gray-500"
+            class="block w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-10 text-sm text-gray-900 placeholder-gray-400 focus:border-cyan-600 focus:outline-none focus:ring-1 focus:ring-cyan-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-100 dark:placeholder-gray-500"
           />
           <button
             type="button"
