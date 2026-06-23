@@ -5,7 +5,7 @@ import { useIntervalFn } from '@vueuse/core'
 import QRCode from 'qrcode'
 import AppIcon from '@/components/common/AppIcon.vue'
 import AppSpinner from '@/components/common/AppSpinner.vue'
-import { getPublicOrder, getOrderChat, sendOrderChat, reactOrderChat, markOrderChatRead, sendOrderTyping } from '@/services/storefrontService'
+import { getPublicOrder, getOrderChat, sendOrderChat, reactOrderChat, markOrderChatRead, sendOrderTyping, uploadOrderChatFile } from '@/services/storefrontService'
 import { subscribeToOrder } from '@/services/echo'
 import { useReverbChannel } from '@/composables/useReverbChannel'
 import { getErrorMessage } from '@/services/api'
@@ -122,6 +122,10 @@ async function onChatReact(messageId: string, emoji: string): Promise<void> {
 
 async function onChatTyping(isTyping: boolean): Promise<void> {
   try { await sendOrderTyping(code, isTyping) } catch { /* ignore */ }
+}
+
+async function onChatAttach(file: File): Promise<void> {
+  upsertChat(await uploadOrderChatFile(code, file))
 }
 
 onMounted(async () => {
@@ -247,6 +251,7 @@ onUnmounted(() => {
           @send="onChatSend"
           @react="onChatReact"
           @typing="onChatTyping"
+          @attach="onChatAttach"
         />
       </AppCard>
 

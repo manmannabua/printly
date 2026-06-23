@@ -86,6 +86,22 @@ class ChatController extends BaseController
         return $this->success(null, 'Read.');
     }
 
+    /** POST /chat/conversations/{id}/attachments */
+    public function uploadAttachment(Request $request, string $id): JsonResponse
+    {
+        $request->validate(['file' => ['required', 'file', 'max:10240']]);
+        $conversation = ChatConversation::findOrFail($id);
+        $user = $request->user();
+        if (! $this->chat->userCanAccess($user, $conversation)) {
+            return $this->error('Forbidden.', 403);
+        }
+
+        $side = $user->is_admin ? 'admin' : 'store';
+        $message = $this->chat->sendAttachment($conversation, $side, (string) $user->id, $request->file('file'));
+
+        return $this->success($message->toChatArray(), 'Sent.');
+    }
+
     /** POST /chat/conversations/{id}/typing */
     public function typing(Request $request, string $id): JsonResponse
     {
@@ -149,7 +165,7 @@ class ChatController extends BaseController
     private function paginateMessages(ChatConversation $conversation, Request $request): array
     {
         $limit = (int) $request->input('limit', 50);
-        $query = $conversation->messages()->with('sender', 'reactions')->latest();
+        $query = $conversation->messages()->with('sender', 'reactions', 'attachments')->latest();
 
         if ($beforeId = $request->input('before_id')) {
             $before = ChatMessage::find($beforeId);

@@ -41,6 +41,17 @@ export async function sendTyping(conversationId: string, isTyping: boolean): Pro
   await api.post(`/api/v1/chat/conversations/${conversationId}/typing`, { is_typing: isTyping })
 }
 
+export async function uploadAttachment(conversationId: string, file: File): Promise<ChatMessage> {
+  const form = new FormData()
+  form.append('file', file)
+  const res = await api.post<ApiResponse<ChatMessage>>(
+    `/api/v1/chat/conversations/${conversationId}/attachments`,
+    form,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  )
+  return res.data.data
+}
+
 export async function editMessage(messageId: string, body: string): Promise<ChatMessage> {
   const res = await api.patch<ApiResponse<ChatMessage>>(`/api/v1/chat/messages/${messageId}`, { body })
   return res.data.data

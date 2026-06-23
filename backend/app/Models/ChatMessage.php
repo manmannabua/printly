@@ -77,6 +77,15 @@ class ChatMessage extends Model
                     ])
                     ->values()
                 : [],
+            'attachments' => $this->relationLoaded('attachments')
+                ? $this->attachments->map(fn ($a) => [
+                    'id' => $a->id,
+                    'name' => $a->name,
+                    'mime' => $a->mime,
+                    'size' => $a->size,
+                    'url' => url("/api/v1/chat-files/{$a->id}"),
+                ])->values()
+                : [],
         ];
     }
 }

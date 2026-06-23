@@ -127,6 +127,37 @@ class ChatService
         return $message;
     }
 
+    /** Persist + broadcast a file attachment as a message. */
+    public function sendAttachment(
+        ChatConversation $conversation,
+        string $side,
+        ?string $userId,
+        \Illuminate\Http\UploadedFile $file,
+    ): ChatMessage {
+        $path = $file->store('chat-attachments', 'local');
+
+        $message = $conversation->messages()->create([
+            'sender_user_id' => $userId,
+            'sender_side' => $side,
+            'body' => null,
+            'type' => 'attachment',
+        ]);
+
+        $message->attachments()->create([
+            'path' => $path,
+            'name' => $file->getClientOriginalName(),
+            'mime' => $file->getClientMimeType(),
+            'size' => $file->getSize(),
+        ]);
+
+        $conversation->update(['last_message_at' => now()]);
+
+        $message->load('sender', 'reactions', 'attachments');
+        ChatMessageEvent::dispatch($conversation, $message->toChatArray(), 'sent');
+
+        return $message;
+    }
+
     public function editMessage(ChatMessage $message, string $body): ChatMessage
     {
         $message->update(['body' => $body, 'edited_at' => now()]);

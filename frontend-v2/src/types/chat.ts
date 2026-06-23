@@ -6,6 +6,14 @@ export interface ChatReactionSummary {
   user_ids: string[]
 }
 
+export interface ChatAttachment {
+  id: string
+  name: string
+  mime: string | null
+  size: number
+  url: string
+}
+
 export interface ChatMessage {
   id: string
   conversation_id: string
@@ -19,6 +27,7 @@ export interface ChatMessage {
   edited_at: string | null
   created_at: string
   reactions: ChatReactionSummary[]
+  attachments: ChatAttachment[]
 }
 
 export interface ChatConversation {

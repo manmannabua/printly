@@ -24,7 +24,7 @@ class OrderChatController extends BaseController
         $conversation = $this->chat->ensureOrderConversation($order);
 
         $messages = $conversation->messages()
-            ->with('sender', 'reactions')
+            ->with('sender', 'reactions', 'attachments')
             ->latest()
             ->limit(50)
             ->get()
@@ -88,6 +88,18 @@ class OrderChatController extends BaseController
         $this->chat->toggleReaction($message, null, $data['emoji']);
 
         return $this->success(null, 'Reaction updated.');
+    }
+
+    /** POST /orders/{code}/chat/attachments */
+    public function uploadAttachment(Request $request, string $code): JsonResponse
+    {
+        $request->validate(['file' => ['required', 'file', 'max:10240']]);
+        $order = $this->resolveOrder($code);
+        $conversation = $this->chat->ensureOrderConversation($order);
+
+        $message = $this->chat->sendAttachment($conversation, 'customer', null, $request->file('file'));
+
+        return $this->success($message->toChatArray(), 'Sent.');
     }
 
     /** POST /orders/{code}/chat/typing */

@@ -25,7 +25,21 @@ const emit = defineEmits<{
   (e: 'edit', messageId: string, body: string): void
   (e: 'remove', messageId: string): void
   (e: 'typing', isTyping: boolean): void
+  (e: 'attach', file: File): void
 }>()
+
+const fileInput = ref<HTMLInputElement | null>(null)
+
+function onFilePicked(e: Event): void {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (file) emit('attach', file)
+  input.value = ''
+}
+
+function isImage(mime: string | null): boolean {
+  return !!mime && mime.startsWith('image/')
+}
 
 const QUICK_EMOJIS = ['👍', '❤️', '😂', '🎉', '✅']
 
@@ -143,7 +157,25 @@ watch(() => props.messages.length, async () => {
             </template>
             <template v-else>
               <p v-if="m.is_deleted" class="italic opacity-70">Message deleted</p>
-              <p v-else class="whitespace-pre-wrap break-words">{{ m.body }}</p>
+              <template v-else>
+                <p v-if="m.body" class="whitespace-pre-wrap break-words">{{ m.body }}</p>
+                <div v-for="att in m.attachments" :key="att.id" class="mt-1">
+                  <a v-if="isImage(att.mime)" :href="att.url" target="_blank" rel="noopener">
+                    <img :src="att.url" :alt="att.name" class="max-h-48 rounded-lg border border-black/10">
+                  </a>
+                  <a
+                    v-else
+                    :href="att.url"
+                    target="_blank"
+                    rel="noopener"
+                    class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs underline"
+                    :class="isMine(m) ? 'bg-white/15' : 'bg-black/5 dark:bg-white/10'"
+                  >
+                    <AppIcon name="paperclip" :size="14" />
+                    <span class="truncate">{{ att.name }}</span>
+                  </a>
+                </div>
+              </template>
               <span
                 class="mt-0.5 block text-[10px]"
                 :class="isMine(m) ? 'text-cyan-100/80' : 'text-gray-400'"
@@ -205,6 +237,14 @@ watch(() => props.messages.length, async () => {
     <div class="border-t border-gray-200 p-3 dark:border-zinc-800">
       <p v-if="typingLabel" class="mb-1.5 px-1 text-xs italic text-gray-400">{{ typingLabel }}</p>
       <div class="flex items-end gap-2">
+        <input ref="fileInput" type="file" class="hidden" @change="onFilePicked">
+        <button
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-zinc-800"
+          title="Attach a file"
+          @click="fileInput?.click()"
+        >
+          <AppIcon name="paperclip" :size="18" />
+        </button>
         <textarea
           v-model="draft"
           rows="1"

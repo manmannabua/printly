@@ -102,3 +102,14 @@ export async function reactOrderChat(code: string, messageId: string, emoji: str
 export async function sendOrderTyping(code: string, isTyping: boolean): Promise<void> {
   await api.post(`/api/v1/orders/${code}/chat/typing`, { is_typing: isTyping })
 }
+
+export async function uploadOrderChatFile(code: string, file: File): Promise<ChatMessage> {
+  const form = new FormData()
+  form.append('file', file)
+  const res = await api.post<ApiResponse<ChatMessage>>(
+    `/api/v1/orders/${code}/chat/attachments`,
+    form,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  )
+  return res.data.data
+}

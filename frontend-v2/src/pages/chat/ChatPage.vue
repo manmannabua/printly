@@ -97,6 +97,11 @@ async function onRemove(messageId: string): Promise<void> {
   await chatService.deleteMessage(messageId)
 }
 
+async function onAttach(file: File): Promise<void> {
+  if (!activeId.value) return
+  upsert(await chatService.uploadAttachment(activeId.value, file))
+}
+
 function preview(c: ChatConversation): string {
   return c.last_message_preview ?? (c.type === 'order' ? 'Customer order chat' : 'No messages yet')
 }
@@ -181,6 +186,7 @@ onMounted(async () => {
           @edit="onEdit"
           @remove="onRemove"
           @typing="onTyping"
+          @attach="onAttach"
         />
       </template>
       <div v-else class="hidden flex-1 items-center justify-center text-sm text-gray-400 sm:flex">
