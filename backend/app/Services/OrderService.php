@@ -109,6 +109,8 @@ class OrderService
 
             OrderPlaced::dispatch($order);
 
+            $this->notifyStore($order, 'order_placed', 'New order', "Order {$order->code} was placed.");
+
             return $order->load('items.files');
         });
     }
@@ -152,7 +154,29 @@ class OrderService
 
         OrderStatusChanged::dispatch($order, $from);
 
+        if ($to === Order::STATUS_PAID) {
+            $this->notifyStore($order, 'order_paid', 'Payment received', "Order {$order->code} has been paid.");
+        }
+
         return $order;
+    }
+
+    /**
+     * Notify every member of the order's store (queue board link in the payload).
+     */
+    private function notifyStore(Order $order, string $type, string $title, string $body): void
+    {
+        $users = $order->store?->users()->get();
+        if (! $users) {
+            return;
+        }
+
+        Notifier::sendMany($users, $type, [
+            'title' => $title,
+            'body' => $body,
+            'url' => "/stores/{$order->store_id}/queue",
+            'order_code' => $order->code,
+        ]);
     }
 
     /**

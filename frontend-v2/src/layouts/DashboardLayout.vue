@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useDarkMode } from '@/composables/useDarkMode'
 import AppIcon from '@/components/common/AppIcon.vue'
+import NotificationBell from '@/components/notifications/NotificationBell.vue'
 
 interface NavItem {
   label: string
@@ -119,6 +120,7 @@ async function handleLogout(): Promise<void> {
         </button>
         <div class="flex-1" />
         <div class="flex items-center gap-3">
+          <NotificationBell />
           <button
             class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
             :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"

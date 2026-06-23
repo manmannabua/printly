@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\Catalog\ProductController;
 use App\Http\Controllers\Api\V1\Catalog\ProductTypeController;
 use App\Http\Controllers\Api\V1\Catalog\QuoteController;
 use App\Http\Controllers\Api\V1\DashboardController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
 use App\Http\Controllers\Api\V1\Order\OrderFileController;
 use App\Http\Controllers\Api\V1\PermissionController;
@@ -45,6 +46,16 @@ Route::post('broadcasting/auth', [AuthController::class, 'mobileBroadcastAuth'])
 
 // ── Dashboard ───────────────────────────────────────────────────────────
 Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+// ── Notifications (per-user) ──────────────────────────────────────────────
+Route::prefix('my/notifications')->name('notifications.')->group(function () {
+    Route::get('/', [NotificationController::class, 'index'])->name('index');
+    Route::get('unread-count', [NotificationController::class, 'unreadCount'])->name('unread-count');
+    Route::post('read-all', [NotificationController::class, 'markAllAsRead'])->name('read-all');
+    Route::delete('read', [NotificationController::class, 'destroyRead'])->name('destroy-read');
+    Route::post('{id}/read', [NotificationController::class, 'markAsRead'])->name('read');
+    Route::delete('{id}', [NotificationController::class, 'destroy'])->name('destroy');
+});
 
 // ── Uploads (images / documents) ────────────────────────────────────────
 Route::post('uploads', [UploadController::class, 'store'])->name('uploads.store');
