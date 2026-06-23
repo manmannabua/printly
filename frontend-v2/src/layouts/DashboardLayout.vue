@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useDarkMode } from '@/composables/useDarkMode'
 import AppIcon from '@/components/common/AppIcon.vue'
+import AppAvatar from '@/components/ui/AppAvatar.vue'
 import NotificationBell from '@/components/notifications/NotificationBell.vue'
+import UserSettingsModal from '@/components/settings/UserSettingsModal.vue'
 
 interface NavItem {
   label: string
@@ -18,11 +20,11 @@ interface NavGroup {
 }
 
 const route = useRoute()
-const router = useRouter()
 const authStore = useAuthStore()
 const { isDark, toggle: toggleDark } = useDarkMode()
 
 const sidebarOpen = ref(false)
+const settingsOpen = ref(false)
 
 // NOTE: Printly domain nav (Orders/Queue, Catalog, Customers, Payments) is
 // added as those modules land — see planning/01-data-model-and-architecture.md.
@@ -63,10 +65,7 @@ function isActive(to: string): boolean {
   return route.path === to || route.path.startsWith(to + '/')
 }
 
-async function handleLogout(): Promise<void> {
-  await authStore.logout()
-  router.push({ name: 'login' })
-}
+const roleLabel = computed(() => authStore.primaryRole ?? 'User')
 </script>
 
 <template>
@@ -110,6 +109,21 @@ async function handleLogout(): Promise<void> {
           </RouterLink>
         </div>
       </nav>
+
+      <!-- Footer: user avatar → settings modal -->
+      <div class="border-t border-gray-200 p-3 dark:border-gray-800">
+        <button
+          class="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+          @click="settingsOpen = true"
+        >
+          <AppAvatar :name="authStore.user?.email" size="sm" />
+          <span class="min-w-0 flex-1">
+            <span class="block truncate text-sm font-medium text-gray-900 dark:text-gray-100">{{ authStore.user?.email }}</span>
+            <span class="block truncate text-xs capitalize text-gray-400">{{ roleLabel }}</span>
+          </span>
+          <AppIcon name="settings" :size="16" class="shrink-0 text-gray-400" />
+        </button>
+      </div>
     </aside>
 
     <!-- Main column -->
@@ -131,17 +145,6 @@ async function handleLogout(): Promise<void> {
           >
             <AppIcon :name="isDark ? 'sun' : 'moon'" :size="20" />
           </button>
-          <div class="hidden text-right sm:block">
-            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ authStore.user?.email }}</p>
-            <p class="text-xs text-gray-400 dark:text-gray-500">{{ authStore.primaryRole ?? 'User' }}</p>
-          </div>
-          <button
-            class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-            @click="handleLogout"
-          >
-            <AppIcon name="log-out" :size="18" />
-            <span class="hidden sm:inline">Logout</span>
-          </button>
         </div>
       </header>
 
@@ -149,5 +152,7 @@ async function handleLogout(): Promise<void> {
         <router-view />
       </main>
     </div>
+
+    <UserSettingsModal v-model="settingsOpen" />
   </div>
 </template>

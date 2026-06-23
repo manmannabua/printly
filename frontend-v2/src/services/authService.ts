@@ -21,6 +21,24 @@ export async function lockSession(): Promise<void> {
   await api.post('/api/v1/auth/lock')
 }
 
+export async function changePassword(data: {
+  current_password: string
+  new_password: string
+  new_password_confirmation: string
+}): Promise<string> {
+  const response = await api.post<ApiResponse<null>>('/api/v1/auth/change-password', data)
+  return response.data.message
+}
+
+export async function setSecurityPin(data: {
+  pin: string
+  current_password?: string
+  current_pin?: string
+}): Promise<{ has_security_pin: boolean }> {
+  const response = await api.post<ApiResponse<{ has_security_pin: boolean }>>('/api/v1/auth/security-pin', data)
+  return response.data.data
+}
+
 export async function forgotPassword(data: ForgotPasswordRequest): Promise<string> {
   const response = await api.post<ApiResponse<null>>('/api/v1/auth/forgot-password', data)
   return response.data.message
