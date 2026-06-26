@@ -97,7 +97,8 @@ it('marks the order paid on a valid webhook', function () {
 
     expect($payment->fresh()->status)->toBe('paid')
         ->and($payment->fresh()->provider_payment_ref)->toBe('pay_test_2')
-        ->and($order->fresh()->status)->toBe('paid')
+        // A paid order auto-accepts, so it settles in "accepted".
+        ->and($order->fresh()->status)->toBe('accepted')
         ->and($order->events()->where('to_status', 'paid')->where('actor_type', OrderEvent::ACTOR_SYSTEM)->exists())->toBeTrue();
 });
 

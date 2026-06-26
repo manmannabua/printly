@@ -81,11 +81,19 @@ it('creates an order with a frozen pricing snapshot and broadcasts OrderPlaced',
 it('walks an order through the fulfillment state machine', function () {
     $order = placeOrder($this->store, $this->product);
 
-    foreach (['paid', 'accepted', 'in_progress', 'ready', 'completed'] as $status) {
+    // A paid order auto-accepts, so the "paid" request lands on "accepted".
+    $steps = [
+        'paid' => 'accepted',
+        'in_progress' => 'in_progress',
+        'ready' => 'ready',
+        'completed' => 'completed',
+    ];
+
+    foreach ($steps as $request => $expected) {
         $this->actingAs($this->admin)
-            ->patchJson("/api/v1/stores/{$this->store->id}/orders/{$order->id}", ['status' => $status])
+            ->patchJson("/api/v1/stores/{$this->store->id}/orders/{$order->id}", ['status' => $request])
             ->assertOk()
-            ->assertJsonPath('data.status', $status);
+            ->assertJsonPath('data.status', $expected);
     }
 
     $order->refresh();
@@ -115,8 +123,11 @@ it('broadcasts OrderStatusChanged on transition', function () {
         ->patchJson("/api/v1/stores/{$this->store->id}/orders/{$order->id}", ['status' => 'paid'])
         ->assertOk();
 
-    Event::assertDispatched(OrderStatusChanged::class, fn ($e) => $e->fromStatus === 'pending_payment'
-        && $e->order->status === 'paid');
+    // The paid transition fires, then the auto-accept fires a second event.
+    // (The order instance is shared/mutated, so assert on fromStatus, not the
+    // live status, which has already advanced to "accepted" by assertion time.)
+    Event::assertDispatched(OrderStatusChanged::class, fn ($e) => $e->fromStatus === 'pending_payment');
+    Event::assertDispatched(OrderStatusChanged::class, fn ($e) => $e->fromStatus === 'paid');
 });
 
 it('exposes public order status by code without auth', function () {
