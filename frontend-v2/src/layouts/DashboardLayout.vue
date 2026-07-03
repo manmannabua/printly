@@ -52,6 +52,10 @@ const printersTo = computed(() => {
   const first = myStores.value[0]
   return first ? `/stores/${first.id}/printers` : null
 })
+const paymentsTo = computed(() => {
+  const first = myStores.value[0]
+  return first ? `/stores/${first.id}/payments` : null
+})
 
 const groups = computed<NavGroup[]>(() => [
   {
@@ -60,6 +64,7 @@ const groups = computed<NavGroup[]>(() => [
       { label: 'Dashboard', to: '/dashboard', icon: 'home' },
       ...(queueTo.value ? [{ label: 'Queue', to: queueTo.value, icon: 'columns', permission: 'orders.view' }] : []),
       ...(printersTo.value ? [{ label: 'Printers', to: printersTo.value, icon: 'printer', permission: 'printers.view' }] : []),
+      ...(paymentsTo.value ? [{ label: 'Payments', to: paymentsTo.value, icon: 'credit-card', permission: 'stores.update' }] : []),
       { label: 'Messages', to: '/chat', icon: 'message-circle' },
     ],
   },

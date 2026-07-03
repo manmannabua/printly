@@ -71,6 +71,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/printers/PrintersPage.vue'),
     meta: { requiresAuth: true, layout: 'dashboard', title: 'Printers', permission: 'printers.view' },
   },
+  {
+    path: '/stores/:id/payments',
+    name: 'store-payments',
+    component: () => import('@/pages/payments/PaymentsPage.vue'),
+    meta: { requiresAuth: true, layout: 'dashboard', title: 'Payments', permission: 'stores.update' },
+  },
 
   {
     path: '/chat',

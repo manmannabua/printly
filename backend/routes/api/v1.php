@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
 use App\Http\Controllers\Api\V1\Order\OrderFileController;
+use App\Http\Controllers\Api\V1\PaymentSettingsController;
 use App\Http\Controllers\Api\V1\PermissionController;
 use App\Http\Controllers\Api\V1\Printing\PrintAgentController;
 use App\Http\Controllers\Api\V1\Printing\PrinterController;
@@ -155,6 +156,13 @@ Route::prefix('stores/{store}')->name('stores.')->group(function () {
         Route::delete('printers/{printer}', [PrinterController::class, 'destroy'])->name('printers.destroy');
 
         Route::post('print-jobs/{printJob}/retry', [PrintJobController::class, 'retry'])->name('print-jobs.retry');
+    });
+
+    // ── Payment settings: the store's own PayMongo connection (owner-only) ───
+    Route::middleware('permission:stores.update')->group(function () {
+        Route::get('payment-settings', [PaymentSettingsController::class, 'show'])->name('payment-settings.show');
+        Route::put('payment-settings', [PaymentSettingsController::class, 'update'])->name('payment-settings.update');
+        Route::delete('payment-settings', [PaymentSettingsController::class, 'destroy'])->name('payment-settings.destroy');
     });
 });
 
