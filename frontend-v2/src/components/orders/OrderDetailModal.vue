@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { Order } from '@/types/printly'
+import { computed, ref } from 'vue'
+import type { Order, PrintJob, PrintJobStatus } from '@/types/printly'
 import { statusLabel, STATUS_DOT } from '@/composables/useOrderBoard'
 import { fileDownloadUrl } from '@/services/orderService'
+import { retryJob } from '@/services/printerService'
+import { useToast } from '@/composables/useToast'
 import AppModal from '@/components/ui/AppModal.vue'
 import AppIcon from '@/components/common/AppIcon.vue'
+import AppBadge from '@/components/ui/AppBadge.vue'
+import AppButton from '@/components/ui/AppButton.vue'
 import AppSpinner from '@/components/common/AppSpinner.vue'
 
 const props = defineProps<{
@@ -14,7 +18,21 @@ const props = defineProps<{
   loading?: boolean
 }>()
 
-const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
+const emit = defineEmits<{ 'update:modelValue': [value: boolean]; 'changed': [] }>()
+
+const toast = useToast()
+
+const JOB_VARIANT: Record<PrintJobStatus, 'neutral' | 'info' | 'warning' | 'success' | 'danger'> = {
+  queued: 'neutral', sent: 'info', printing: 'warning', done: 'success', error: 'danger',
+}
+const retrying = ref<string | null>(null)
+
+async function retry(job: PrintJob) {
+  retrying.value = job.id
+  try { await retryJob(props.storeId, job.id); toast.success('Job re-queued.'); emit('changed') }
+  catch { toast.error('Could not retry job.') }
+  finally { retrying.value = null }
+}
 
 function formatMoney(cents: number): string {
   return `₱${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -112,6 +130,27 @@ const allFiles = computed(() =>
       <p v-if="allFiles.length > 1" class="text-xs text-gray-400">
         {{ allFiles.length }} files total. Each opens in a new tab for printing.
       </p>
+
+      <!-- Auto-print jobs -->
+      <div v-if="order.print_jobs?.length">
+        <h4 class="mb-2 text-sm font-semibold text-gray-900 dark:text-gray-100">Auto-print</h4>
+        <div class="space-y-1.5">
+          <div
+            v-for="job in order.print_jobs"
+            :key="job.id"
+            class="flex items-center gap-2 rounded-md border border-gray-200 px-2.5 py-2 text-sm dark:border-gray-700"
+          >
+            <AppIcon name="printer" :size="16" class="shrink-0 text-gray-400" />
+            <span class="min-w-0 flex-1 truncate text-gray-800 dark:text-gray-200">{{ job.file_name ?? 'File' }}</span>
+            <span class="shrink-0 text-xs text-gray-400">{{ job.printer_name ?? 'Unassigned' }} · ×{{ job.copies }}</span>
+            <AppBadge :variant="JOB_VARIANT[job.status]">{{ job.status }}</AppBadge>
+            <AppButton
+              v-if="job.status !== 'done' && job.status !== 'queued'"
+              size="sm" variant="secondary" :loading="retrying === job.id" @click="retry(job)"
+            ><span>Retry</span></AppButton>
+          </div>
+        </div>
+      </div>
 
       <!-- Timeline -->
       <div v-if="order.events?.length">

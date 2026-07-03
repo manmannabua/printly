@@ -8,6 +8,7 @@ import { getEcho } from '@/composables/useReverbChannel'
 export interface StoreOrderHandlers {
   onPlaced?: (payload: unknown) => void
   onStatusChanged?: (payload: unknown) => void
+  onPrintJobUpdated?: (payload: unknown) => void
 }
 
 /**
@@ -23,6 +24,7 @@ export function subscribeToStoreOrders(storeId: string, handlers: StoreOrderHand
     const channel = client.private(channelName)
     if (handlers.onPlaced) channel.listen('OrderPlaced', handlers.onPlaced)
     if (handlers.onStatusChanged) channel.listen('OrderStatusChanged', handlers.onStatusChanged)
+    if (handlers.onPrintJobUpdated) channel.listen('PrintJobUpdated', handlers.onPrintJobUpdated)
 
     return () => {
       try {

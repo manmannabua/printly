@@ -60,14 +60,27 @@ class AgentController extends Controller
             return response()->json(['success' => true, 'data' => []]);
         }
 
-        $claimed = DB::transaction(function () use ($printerIds) {
+        $staleBefore = now()->subSeconds(PrintJob::STALE_AFTER_SECONDS);
+
+        $claimed = DB::transaction(function () use ($printerIds, $staleBefore) {
+            // Fresh jobs, plus jobs an earlier poll claimed but never finished
+            // (agent crashed) — reclaimed once they go stale so nothing sticks.
             $jobs = PrintJob::whereIn('printer_id', $printerIds)
-                ->where('status', PrintJob::STATUS_QUEUED)
+                ->where(function ($q) use ($staleBefore) {
+                    $q->where('status', PrintJob::STATUS_QUEUED)
+                        ->orWhere(fn ($s) => $s->whereIn('status', PrintJob::ACTIVE)
+                            ->where('sent_at', '<', $staleBefore));
+                })
                 ->lockForUpdate()
                 ->get();
 
             foreach ($jobs as $job) {
-                $job->update(['status' => PrintJob::STATUS_SENT, 'sent_at' => now()]);
+                $reclaim = $job->status !== PrintJob::STATUS_QUEUED;
+                $job->update([
+                    'status' => PrintJob::STATUS_SENT,
+                    'sent_at' => now(),
+                    'attempts' => $reclaim ? $job->attempts + 1 : $job->attempts,
+                ]);
             }
 
             return $jobs;

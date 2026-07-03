@@ -63,7 +63,7 @@ class OrderController extends BaseController
     {
         $this->ensureOwned($store, $order);
 
-        return $this->success(new OrderResource($order->load(['items.files', 'events'])));
+        return $this->success(new OrderResource($order->load(['items.files', 'events', 'printJobs.printer'])));
     }
 
     /**

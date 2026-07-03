@@ -27,14 +27,16 @@ class PrintJobController extends BaseController
     }
 
     /**
-     * Re-queue an errored job so an agent will pick it up again.
+     * Re-queue a failed or stuck job so an agent will pick it up again. A job
+     * that already printed (done) cannot be retried — that would reprint it.
      */
     public function retry(Store $store, PrintJob $printJob): JsonResponse
     {
         $this->authorizeStore($store);
         abort_unless($printJob->store_id === $store->id, 404, 'Print job not found.');
 
-        abort_unless($printJob->status === PrintJob::STATUS_ERROR, 422, 'Only failed jobs can be retried.');
+        abort_if($printJob->status === PrintJob::STATUS_DONE, 422, 'This job already printed.');
+        abort_if($printJob->status === PrintJob::STATUS_QUEUED, 422, 'This job is already waiting to print.');
 
         $printJob->update([
             'status' => PrintJob::STATUS_QUEUED,

@@ -261,6 +261,7 @@ export interface Order {
   completed_at: string | null
   items?: OrderItem[]
   events?: OrderEvent[]
+  print_jobs?: PrintJob[]
   created_at?: string
 }
 

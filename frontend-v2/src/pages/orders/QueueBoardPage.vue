@@ -259,6 +259,7 @@ onUnmounted(() => {
       :store-id="storeId"
       :order="detailOrder"
       :loading="detailLoading"
+      @changed="detailOrder && openDetail(detailOrder)"
     />
 
     <!-- Chat drawer -->

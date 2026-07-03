@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useIntervalFn } from '@vueuse/core'
 import { useRoute } from 'vue-router'
 import { useForm } from '@/composables/useForm'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import type { PrintAgent, Printer, PrintJob, Store } from '@/types/printly'
+import { subscribeToStoreOrders } from '@/services/echo'
 import { getStore, updateStore } from '@/services/storeService'
 import {
   listAgents, createAgent, regenerateAgentToken, deleteAgent,
@@ -50,8 +52,20 @@ async function refresh() {
   jobs.value = j
 }
 
+// Live job status: real-time when Reverb is on, a gentle poll otherwise.
+let unsubscribe: (() => void) | null = null
+const { pause: stopPolling } = useIntervalFn(() => { refresh().catch(() => {}) }, 10000)
+
 onMounted(async () => {
   try { await refresh() } catch { toast.error('Could not load printers.') } finally { loading.value = false }
+  unsubscribe = subscribeToStoreOrders(storeId, {
+    onPrintJobUpdated: () => { refresh().catch(() => {}) },
+  })
+})
+
+onUnmounted(() => {
+  stopPolling()
+  unsubscribe?.()
 })
 
 // ── Auto-print toggle ────────────────────────────────────────────────────────

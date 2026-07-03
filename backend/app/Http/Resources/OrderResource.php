@@ -30,6 +30,7 @@ class OrderResource extends JsonResource
             'completed_at' => $this->completed_at?->toISOString(),
             'items' => OrderItemResource::collection($this->whenLoaded('items')),
             'events' => OrderEventResource::collection($this->whenLoaded('events')),
+            'print_jobs' => PrintJobResource::collection($this->whenLoaded('printJobs')),
             'created_at' => $this->created_at?->toISOString(),
         ];
     }

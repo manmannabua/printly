@@ -19,8 +19,10 @@ export default defineConfig({
   },
   server: {
     // 5173 matches the backend's SANCTUM_STATEFUL_DOMAINS / FRONTEND_URL, so
-    // admin cookie auth works out of the box.
+    // admin cookie auth works out of the box. strictPort: never silently drift
+    // to 5175 (which isn't in the CORS/Sanctum allow-list → login just fails).
     port: 5173,
+    strictPort: true,
     proxy: {
       '/api': {
         target: resolveApiTarget(),

@@ -33,6 +33,13 @@ class PrintJob extends Model
     /** Statuses the agent has actively started working. */
     public const ACTIVE = [self::STATUS_SENT, self::STATUS_PRINTING];
 
+    /**
+     * A claimed job (sent/printing) whose last update is older than this is
+     * considered stale — the agent likely crashed — and may be reclaimed on the
+     * next poll or retried by the owner, so a job never gets stuck forever.
+     */
+    public const STALE_AFTER_SECONDS = 180;
+
     protected $fillable = [
         'store_id',
         'order_id',

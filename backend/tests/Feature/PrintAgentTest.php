@@ -160,6 +160,52 @@ it('lets an owner retry a failed job but blocks retry of a live one', function (
     expect(PrintJob::find($jobId)->status)->toBe(PrintJob::STATUS_QUEUED);
 });
 
+it('reclaims a stale claimed job on the next poll', function () {
+    ['product' => $product, 'token' => $token] = makePrintableStore($this->store);
+    $order = placePaidPrintOrder($this->store, $product);
+    $auth = ['Authorization' => "Bearer {$token}"];
+
+    // First poll claims the job (→ sent).
+    $jobId = $this->getJson('/api/agent/jobs', $auth)->json('data.0.id');
+    // Agent "crashes": nothing more happens and the claim goes stale.
+    PrintJob::where('id', $jobId)->update(['sent_at' => now()->subSeconds(PrintJob::STALE_AFTER_SECONDS + 60)]);
+
+    // Next poll reclaims it (still owned, attempts bumped).
+    $again = $this->getJson('/api/agent/jobs', $auth)->assertOk()->json('data');
+    expect($again)->toHaveCount(1)->and($again[0]['id'])->toBe($jobId);
+    expect(PrintJob::find($jobId)->attempts)->toBe(1);
+});
+
+it('lets an owner retry a stuck (not just failed) job', function () {
+    ['product' => $product, 'token' => $token] = makePrintableStore($this->store);
+    $order = placePaidPrintOrder($this->store, $product);
+    $jobId = $order->printJobs()->first()->id;
+    $this->getJson('/api/agent/jobs', ['Authorization' => "Bearer {$token}"]); // claim → sent
+
+    $this->actingAs($this->admin)
+        ->postJson("/api/v1/stores/{$this->store->id}/print-jobs/{$jobId}/retry")
+        ->assertOk();
+    expect(PrintJob::find($jobId)->status)->toBe(PrintJob::STATUS_QUEUED);
+
+    // A completed job cannot be retried.
+    PrintJob::where('id', $jobId)->update(['status' => 'done']);
+    $this->actingAs($this->admin)
+        ->postJson("/api/v1/stores/{$this->store->id}/print-jobs/{$jobId}/retry")
+        ->assertStatus(422);
+});
+
+it('includes print jobs in the order detail payload', function () {
+    ['product' => $product] = makePrintableStore($this->store);
+    $order = placePaidPrintOrder($this->store, $product);
+
+    $data = $this->actingAs($this->admin)
+        ->getJson("/api/v1/stores/{$this->store->id}/orders/{$order->id}")
+        ->assertOk()->json('data');
+
+    expect($data['print_jobs'])->toHaveCount(1);
+    expect($data['print_jobs'][0]['status'])->toBe(PrintJob::STATUS_QUEUED);
+});
+
 it('forbids a staff member from managing printers', function () {
     $staff = User::factory()->create();
     $staff->roles()->attach(Role::where('name', 'staff')->first()->id, [

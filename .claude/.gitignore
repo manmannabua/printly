@@ -1,0 +1,6 @@
+# Internal Claude Code files — never commit
+settings.local.json
+cache/
+todos/
+*-session*
+*.tmp
