@@ -54,6 +54,15 @@ class Store extends Model
     }
 
     /**
+     * Whether auto-print is switched on for this store (settings.auto_print).
+     * Off by default — the agent is an opt-in upsell (planning §5.3).
+     */
+    public function autoPrintEnabled(): bool
+    {
+        return (bool) ($this->settings['auto_print'] ?? false);
+    }
+
+    /**
      * Staff/owners with access to this store.
      */
     public function users(): BelongsToMany
@@ -76,5 +85,20 @@ class Store extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function printAgents(): HasMany
+    {
+        return $this->hasMany(PrintAgent::class);
+    }
+
+    public function printers(): HasMany
+    {
+        return $this->hasMany(Printer::class);
+    }
+
+    public function printJobs(): HasMany
+    {
+        return $this->hasMany(PrintJob::class);
     }
 }

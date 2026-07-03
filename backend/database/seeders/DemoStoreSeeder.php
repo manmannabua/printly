@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\PriceRule;
+use App\Models\PrintAgent;
+use App\Models\Printer;
 use App\Models\Product;
 use App\Models\ProductOption;
 use App\Models\ProductType;
@@ -35,7 +37,7 @@ class DemoStoreSeeder extends Seeder
                 'settings' => [
                     'accepts_guest' => true,
                     'pay_on_pickup_allowed' => true,
-                    'auto_print' => false,
+                    'auto_print' => true,
                 ],
             ],
         );
@@ -43,6 +45,35 @@ class DemoStoreSeeder extends Seeder
         $this->seedStaff($store);
         $this->seedDocumentPrinting($store);
         $this->seedTarpaulin($store);
+        $this->seedPrinting($store);
+    }
+
+    /**
+     * Auto-print bridge: a demo agent with a fixed dev token so the reference
+     * agent (tools/print-agent) connects out of the box, plus one printer.
+     *
+     * DEV ONLY — a real agent's token is random and shown once in the UI.
+     */
+    public const DEMO_AGENT_TOKEN = 'pa_demo_campus_print_hub_0000000000000000';
+
+    private function seedPrinting(Store $store): void
+    {
+        $agent = PrintAgent::firstOrCreate(
+            ['store_id' => $store->id, 'name' => 'Front counter PC'],
+            [
+                'token_hash' => PrintAgent::hashToken(self::DEMO_AGENT_TOKEN),
+                'is_active' => true,
+            ],
+        );
+
+        Printer::firstOrCreate(
+            ['store_id' => $store->id, 'name' => 'HP LaserJet (front counter)'],
+            [
+                'print_agent_id' => $agent->id,
+                'capabilities' => ['sizes' => ['A4', 'Letter', 'Legal'], 'color' => false],
+                'is_active' => true,
+            ],
+        );
     }
 
     private function seedStaff(Store $store): void

@@ -25,6 +25,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->prefix('api/v1')
                 ->name('api.v1.')
                 ->group(base_path('routes/api/v1.php'));
+
+            // Local print agents — token auth, no session/CSRF (planning §5.3).
+            Route::middleware(['api', 'agent.auth'])
+                ->prefix('api/agent')
+                ->name('agent.')
+                ->group(base_path('routes/api/agent.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -50,6 +56,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'role' => \App\Http\Middleware\CheckRole::class,
             'active' => \App\Http\Middleware\EnsureUserIsActive::class,
+            'agent.auth' => \App\Http\Middleware\AuthenticatePrintAgent::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

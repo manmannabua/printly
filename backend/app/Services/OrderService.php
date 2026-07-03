@@ -154,6 +154,12 @@ class OrderService
 
         OrderStatusChanged::dispatch($order, $from);
 
+        // Auto-print bridge: an accepted order is turned into print jobs routed
+        // to the store's printers (no-op unless the store has auto-print on).
+        if ($to === Order::STATUS_ACCEPTED) {
+            app(PrintRoutingService::class)->enqueueForOrder($order);
+        }
+
         if ($to === Order::STATUS_PAID) {
             $this->notifyStore($order, 'order_paid', 'Payment received', "Order {$order->code} has been paid.");
 

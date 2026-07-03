@@ -12,6 +12,9 @@ use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
 use App\Http\Controllers\Api\V1\Order\OrderFileController;
 use App\Http\Controllers\Api\V1\PermissionController;
+use App\Http\Controllers\Api\V1\Printing\PrintAgentController;
+use App\Http\Controllers\Api\V1\Printing\PrinterController;
+use App\Http\Controllers\Api\V1\Printing\PrintJobController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\StoreController;
 use App\Http\Controllers\Api\V1\UploadController;
@@ -129,6 +132,29 @@ Route::prefix('stores/{store}')->name('stores.')->group(function () {
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
         Route::patch('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
         Route::post('files', [OrderFileController::class, 'store'])->name('files.store');
+    });
+
+    // ── Auto-print: agents, printers, and print jobs (owner management) ──────
+    Route::middleware('permission:printers.view')->group(function () {
+        Route::get('print-agents', [PrintAgentController::class, 'index'])->name('print-agents.index');
+        Route::get('print-agents/{printAgent}', [PrintAgentController::class, 'show'])->name('print-agents.show');
+        Route::get('printers', [PrinterController::class, 'index'])->name('printers.index');
+        Route::get('printers/{printer}', [PrinterController::class, 'show'])->name('printers.show');
+        Route::get('print-jobs', [PrintJobController::class, 'index'])->name('print-jobs.index');
+    });
+    Route::middleware('permission:printers.manage')->group(function () {
+        Route::post('print-agents', [PrintAgentController::class, 'store'])->name('print-agents.store');
+        Route::put('print-agents/{printAgent}', [PrintAgentController::class, 'update'])->name('print-agents.update');
+        Route::patch('print-agents/{printAgent}', [PrintAgentController::class, 'update']);
+        Route::post('print-agents/{printAgent}/regenerate-token', [PrintAgentController::class, 'regenerateToken'])->name('print-agents.regenerate');
+        Route::delete('print-agents/{printAgent}', [PrintAgentController::class, 'destroy'])->name('print-agents.destroy');
+
+        Route::post('printers', [PrinterController::class, 'store'])->name('printers.store');
+        Route::put('printers/{printer}', [PrinterController::class, 'update'])->name('printers.update');
+        Route::patch('printers/{printer}', [PrinterController::class, 'update']);
+        Route::delete('printers/{printer}', [PrinterController::class, 'destroy'])->name('printers.destroy');
+
+        Route::post('print-jobs/{printJob}/retry', [PrintJobController::class, 'retry'])->name('print-jobs.retry');
     });
 });
 

@@ -263,3 +263,52 @@ export interface Order {
   events?: OrderEvent[]
   created_at?: string
 }
+
+// ── Auto-print: agents, printers, jobs ───────────────────────────────────────
+export interface PrintAgent {
+  id: string
+  store_id: string
+  name: string
+  is_active: boolean
+  last_seen_at: string | null
+  printers_count?: number
+  // Present only in the create/regenerate response — shown once.
+  token?: string
+  created_at?: string
+}
+
+export interface PrinterCapabilities {
+  sizes: string[]
+  color: boolean
+}
+
+export interface Printer {
+  id: string
+  store_id: string
+  print_agent_id: string | null
+  name: string
+  capabilities: PrinterCapabilities
+  is_active: boolean
+  agent?: PrintAgent | null
+  created_at?: string
+}
+
+export type PrintJobStatus = 'queued' | 'sent' | 'printing' | 'done' | 'error'
+
+export interface PrintJob {
+  id: string
+  store_id: string
+  order_id: string
+  order_code?: string
+  order_file_id: string
+  file_name?: string
+  printer_id: string | null
+  printer_name?: string | null
+  status: PrintJobStatus
+  copies: number
+  error: string | null
+  attempts: number
+  sent_at: string | null
+  printed_at: string | null
+  created_at?: string
+}

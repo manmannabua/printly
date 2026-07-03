@@ -69,7 +69,8 @@ Or run them in separate terminals:
 > clone and are not used — the SPA lives entirely in `frontend-v2/`.
 
 > Production target is MySQL + Reverb (see `planning/01-data-model-and-architecture.md`).
-> The production `vite build` and `npm run typecheck` both pass clean.
+> The production `vite build` passes clean; `npm run typecheck` still reports pre-existing
+> strictness warnings in the inherited UI kit (they don't affect the build).
 
 ## Planning docs
 - [`planning/00-validation.md`](planning/00-validation.md)

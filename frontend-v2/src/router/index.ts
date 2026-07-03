@@ -65,6 +65,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/orders/QueueBoardPage.vue'),
     meta: { requiresAuth: true, layout: 'dashboard', title: 'Order Queue', permission: 'orders.view' },
   },
+  {
+    path: '/stores/:id/printers',
+    name: 'store-printers',
+    component: () => import('@/pages/printers/PrintersPage.vue'),
+    meta: { requiresAuth: true, layout: 'dashboard', title: 'Printers', permission: 'printers.view' },
+  },
 
   {
     path: '/chat',

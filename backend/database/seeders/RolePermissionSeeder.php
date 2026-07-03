@@ -18,6 +18,7 @@ class RolePermissionSeeder extends Seeder
         'stores'        => ['label' => 'Stores',        'actions' => ['view', 'create', 'update', 'delete']],
         'catalog'       => ['label' => 'Catalog',       'actions' => ['view', 'create', 'update', 'delete']],
         'orders'        => ['label' => 'Orders',        'actions' => ['view', 'process', 'refund', 'delete']],
+        'printers'      => ['label' => 'Printers',      'actions' => ['view', 'manage']],
         'customers'     => ['label' => 'Customers',     'actions' => ['view']],
         'payments'      => ['label' => 'Payments',      'actions' => ['view', 'refund']],
         'subscriptions' => ['label' => 'Subscriptions', 'actions' => ['view', 'manage']],
@@ -79,7 +80,7 @@ class RolePermissionSeeder extends Seeder
         // Store owner: full control of their store's catalog, orders, payments,
         // customers, reports, settings + manage staff.
         $ownerPerms = $this->actionsFor([
-            'stores', 'catalog', 'orders', 'customers', 'payments', 'reports', 'settings',
+            'stores', 'catalog', 'orders', 'printers', 'customers', 'payments', 'reports', 'settings',
         ]);
         $ownerPerms[] = 'subscriptions.view';
         $ownerPerms[] = 'users.view';
@@ -92,13 +93,14 @@ class RolePermissionSeeder extends Seeder
             'catalog.view',
             'orders.view',
             'orders.process',
+            'printers.view',
             'customers.view',
         ];
         $this->sync($staff, $staffPerms, $permissionIds);
 
         // Viewer: read-only across store-facing modules.
         $viewerPerms = $this->actionsFor(
-            ['stores', 'catalog', 'orders', 'customers', 'payments', 'reports'],
+            ['stores', 'catalog', 'orders', 'printers', 'customers', 'payments', 'reports'],
             ['view']
         );
         $this->sync($viewer, $viewerPerms, $permissionIds);
