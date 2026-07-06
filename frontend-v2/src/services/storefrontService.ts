@@ -16,6 +16,11 @@ export async function getStorefront(slug: string): Promise<StorefrontCatalog> {
   return res.data.data
 }
 
+export async function getStorefrontPreview(storeId: string): Promise<StorefrontCatalog> {
+  const res = await api.get<ApiResponse<StorefrontCatalog>>(`/api/v1/stores/${storeId}/storefront-preview`)
+  return res.data.data
+}
+
 export async function uploadStorefrontFile(slug: string, file: File): Promise<OrderFile> {
   const form = new FormData()
   form.append('file', file)
@@ -25,8 +30,10 @@ export async function uploadStorefrontFile(slug: string, file: File): Promise<Or
   return res.data.data
 }
 
-export async function getStorefrontFile(slug: string, id: string): Promise<OrderFile> {
-  const res = await api.get<ApiResponse<OrderFile>>(`/api/v1/s/${slug}/files/${id}`)
+export async function getStorefrontFile(slug: string, id: string, token: string): Promise<OrderFile> {
+  const res = await api.get<ApiResponse<OrderFile>>(`/api/v1/s/${slug}/files/${id}`, {
+    params: { token },
+  })
   return res.data.data
 }
 
@@ -52,6 +59,7 @@ export type PlaceOrderItem = {
   product_id: string
   quantity?: number
   file_ids?: string[]
+  file_tokens?: Record<string, string>
   spec?: {
     page_count?: number
     paper_size?: string

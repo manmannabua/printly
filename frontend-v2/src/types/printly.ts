@@ -8,9 +8,6 @@ export type Upload = {
   size: number
 }
 
-/** Embedded 3D / video tour providers (reused by AppMultiUpload / tour embed util). */
-export type TourProvider = 'matterport' | 'youtube' | 'vimeo' | 'kuula'
-
 /** Role-aware dashboard metrics (admin = platform-wide, store = own stores). */
 export interface DashboardKpi {
   key: string
@@ -47,6 +44,8 @@ export interface Store {
   name: string
   slug: string
   plan: StorePlan
+  /** Feature keys the plan unlocks (derived from the plan; UI upsell hints). */
+  plan_features?: string[]
   status: StoreStatus
   timezone: string
   currency: string
@@ -169,6 +168,7 @@ export interface StorefrontStore {
   settings: {
     accepts_guest: boolean
     pay_on_pickup_allowed: boolean
+    accepts_online_payments: boolean
   }
 }
 
@@ -191,6 +191,7 @@ export interface OrderFile {
   is_color: boolean | null
   analysis_status: AnalysisStatus
   analysis_error: string | null
+  upload_token?: string
   created_at?: string
 }
 

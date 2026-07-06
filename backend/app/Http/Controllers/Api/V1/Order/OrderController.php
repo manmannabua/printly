@@ -6,11 +6,11 @@ use App\Http\Controllers\Api\V1\BaseController;
 use App\Http\Requests\Order\CreateOrderRequest;
 use App\Http\Requests\Order\UpdateOrderStatusRequest;
 use App\Http\Resources\OrderResource;
-use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderEvent;
 use App\Models\Payment;
 use App\Models\Store;
+use App\Services\CustomerService;
 use App\Services\OrderService;
 use App\Services\PaymongoService;
 use Illuminate\Http\JsonResponse;
@@ -22,11 +22,9 @@ class OrderController extends BaseController
     public function __construct(
         private readonly OrderService $orders,
         private readonly PaymongoService $paymongo,
+        private readonly CustomerService $customers,
     ) {}
 
-    /**
-     * The store queue board: orders filtered by status.
-     */
     public function index(Request $request, Store $store): JsonResponse
     {
         $this->authorizeStore($store);
@@ -47,7 +45,7 @@ class OrderController extends BaseController
         $this->authorizeStore($store);
 
         $data = $request->validated();
-        $customerId = $this->resolveCustomerId($data);
+        $customerId = $this->customers->resolveForOrder($data);
 
         $order = $this->orders->create($store, $customerId, $data['items'], [
             'actor_type' => OrderEvent::ACTOR_STAFF,
@@ -66,9 +64,6 @@ class OrderController extends BaseController
         return $this->success(new OrderResource($order->load(['items.files', 'events', 'printJobs.printer'])));
     }
 
-    /**
-     * Transition an order's status (accept / print / ready / complete / reject…).
-     */
     public function update(UpdateOrderStatusRequest $request, Store $store, Order $order): JsonResponse
     {
         $this->ensureOwned($store, $order);
@@ -89,10 +84,6 @@ class OrderController extends BaseController
         return $this->success(new OrderResource($order->fresh(['items', 'events'])), 'Order updated.');
     }
 
-    /**
-     * Best-effort PayMongo refund when an order is marked refunded. The status
-     * change already succeeded; a PSP hiccup is logged, not surfaced as a 500.
-     */
     private function refundIfPaid(Order $order, ?string $reason): void
     {
         $payment = Payment::where('order_id', $order->id)
@@ -108,39 +99,6 @@ class OrderController extends BaseController
         } catch (\Throwable $e) {
             Log::error('PayMongo refund failed', ['order' => $order->code, 'error' => $e->getMessage()]);
         }
-    }
-
-    /**
-     * Resolve a customer id from an explicit id or an inline guest block.
-     *
-     * @param  array<string, mixed>  $data
-     */
-    private function resolveCustomerId(array $data): ?string
-    {
-        if (! empty($data['customer_id'])) {
-            return $data['customer_id'];
-        }
-
-        $customer = $data['customer'] ?? null;
-        if (! $customer || (empty($customer['phone']) && empty($customer['email']))) {
-            return null;
-        }
-
-        // Guest keyed by phone (planning §4.1) — reuse an existing guest row.
-        $existing = ! empty($customer['phone'])
-            ? Customer::where('phone', $customer['phone'])->first()
-            : null;
-
-        if ($existing) {
-            return $existing->id;
-        }
-
-        return Customer::create([
-            'name' => $customer['name'] ?? null,
-            'phone' => $customer['phone'] ?? null,
-            'email' => $customer['email'] ?? null,
-            'is_guest' => true,
-        ])->id;
     }
 
     private function ensureOwned(Store $store, Order $order): void

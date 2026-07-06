@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Api\V1\Storefront;
 use App\Http\Controllers\Api\V1\BaseController;
 use App\Http\Controllers\Api\V1\Storefront\Concerns\ResolvesStorefront;
 use App\Http\Requests\Storefront\PlaceOrderRequest;
-use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderEvent;
+use App\Models\OrderFile;
 use App\Models\Product;
+use App\Models\Store;
+use App\Services\CustomerService;
 use App\Services\OrderService;
 use App\Services\PaymongoService;
+use App\Services\PublicUploadTokenService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -24,29 +27,38 @@ class StorefrontOrderController extends BaseController
     public function __construct(
         private readonly OrderService $orders,
         private readonly PaymongoService $paymongo,
+        private readonly CustomerService $customers,
+        private readonly PublicUploadTokenService $uploadTokens,
     ) {}
 
-    /**
-     * Guest checkout (planning §7, POST /s/{slug}/orders). Creates a
-     * pending_payment order keyed to a guest customer and returns the QR code +
-     * status. Payment intent / cash-on-pickup advancement arrives with step 7.
-     */
     public function store(PlaceOrderRequest $request, string $slug): JsonResponse
     {
         $store = $this->activeStore($slug);
         $data = $request->validated();
+        $payMethod = $data['pay_method'] ?? null;
 
         $this->assertProductsOrderable($store->id, $data['items']);
+        $this->assertFilesAuthorized($store->id, $data['items']);
+        $this->assertPaymentMethodAvailable($store, $payMethod);
 
-        $customerId = $this->resolveGuest($data['customer']);
+        $customerId = $this->customers->resolveGuest($data['customer']);
 
         $order = $this->orders->create($store, $customerId, $data['items'], [
             'actor_type' => OrderEvent::ACTOR_CUSTOMER,
-            'pay_method' => $data['pay_method'] ?? null,
+            'pay_method' => $payMethod,
             'notes' => $data['notes'] ?? null,
         ]);
 
-        $checkoutUrl = $this->maybeCreateCheckout($store, $order, $data['pay_method'] ?? null);
+        $checkoutUrl = $this->maybeCreateCheckout($store, $order, $payMethod);
+        if ($this->shouldAcceptCashPickup($store, $payMethod)) {
+            $order = $this->orders->transition(
+                $order,
+                Order::STATUS_ACCEPTED,
+                OrderEvent::ACTOR_CUSTOMER,
+                $customerId,
+                ['via' => 'cash_on_pickup'],
+            );
+        }
 
         return $this->success([
             'code' => $order->code,
@@ -57,14 +69,9 @@ class StorefrontOrderController extends BaseController
         ], 'Order placed.', 201);
     }
 
-    /**
-     * For online methods on a payment-enabled store, open a PayMongo checkout.
-     * A PSP failure must not lose the order — it stays pending_payment and the
-     * customer can be sent a fresh link, so we degrade to a null checkout URL.
-     */
-    private function maybeCreateCheckout(\App\Models\Store $store, Order $order, ?string $payMethod): ?string
+    private function maybeCreateCheckout(Store $store, Order $order, ?string $payMethod): ?string
     {
-        if (! in_array($payMethod, self::ONLINE_METHODS, true) || ! $store->acceptsOnlinePayments()) {
+        if (! in_array($payMethod, self::ONLINE_METHODS, true)) {
             return null;
         }
 
@@ -73,13 +80,42 @@ class StorefrontOrderController extends BaseController
         } catch (\Throwable $e) {
             Log::error('PayMongo checkout creation failed', ['order' => $order->code, 'error' => $e->getMessage()]);
 
-            return null;
+            $this->orders->transition(
+                $order,
+                Order::STATUS_CANCELLED,
+                OrderEvent::ACTOR_SYSTEM,
+                null,
+                ['reason' => 'checkout_creation_failed'],
+            );
+
+            throw ValidationException::withMessages([
+                'pay_method' => 'Online checkout could not be started. Please try again or choose another payment method.',
+            ]);
+        }
+    }
+
+    private function assertPaymentMethodAvailable(Store $store, ?string $payMethod): void
+    {
+        if ($payMethod === null) {
+            throw ValidationException::withMessages([
+                'pay_method' => 'Choose a payment method.',
+            ]);
+        }
+
+        if ($payMethod === 'cash_on_pickup' && ! $this->shouldAcceptCashPickup($store, $payMethod)) {
+            throw ValidationException::withMessages([
+                'pay_method' => 'Pay at pickup is not available for this store.',
+            ]);
+        }
+
+        if (in_array($payMethod, self::ONLINE_METHODS, true) && ! $store->acceptsOnlinePayments()) {
+            throw ValidationException::withMessages([
+                'pay_method' => 'Online payments are not available for this store.',
+            ]);
         }
     }
 
     /**
-     * Every ordered product must be active and belong to this store.
-     *
      * @param  array<int, array<string, mixed>>  $items
      */
     private function assertProductsOrderable(string $storeId, array $items): void
@@ -99,23 +135,29 @@ class StorefrontOrderController extends BaseController
     }
 
     /**
-     * @param  array<string, mixed>  $customer
+     * @param  array<int, array<string, mixed>>  $items
      */
-    private function resolveGuest(array $customer): string
+    private function assertFilesAuthorized(string $storeId, array $items): void
     {
-        $existing = ! empty($customer['phone'])
-            ? Customer::where('phone', $customer['phone'])->first()
-            : null;
+        foreach ($items as $index => $item) {
+            foreach (($item['file_ids'] ?? []) as $fileId) {
+                $file = OrderFile::where('store_id', $storeId)
+                    ->whereNull('order_item_id')
+                    ->find($fileId);
+                $token = $item['file_tokens'][$fileId] ?? null;
 
-        if ($existing) {
-            return $existing->id;
+                if (! $file || ! $this->uploadTokens->isValid($file, $token)) {
+                    throw ValidationException::withMessages([
+                        "items.{$index}.file_ids" => 'One or more uploaded files are unavailable.',
+                    ]);
+                }
+            }
         }
+    }
 
-        return Customer::create([
-            'name' => $customer['name'] ?? null,
-            'phone' => $customer['phone'] ?? null,
-            'email' => $customer['email'] ?? null,
-            'is_guest' => true,
-        ])->id;
+    private function shouldAcceptCashPickup(Store $store, ?string $payMethod): bool
+    {
+        return $payMethod === 'cash_on_pickup'
+            && (bool) ($store->settings['pay_on_pickup_allowed'] ?? false);
     }
 }

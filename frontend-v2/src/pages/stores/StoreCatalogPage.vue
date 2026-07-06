@@ -5,7 +5,7 @@ import { useApiList } from '@/composables/useApiList'
 import { useForm } from '@/composables/useForm'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
-import type { Store, ProductType, Product, PriceRule, Quote } from '@/types/printly'
+import type { Fulfillment, PricingMode, Store, ProductType, Product, PriceRule, Quote } from '@/types/printly'
 import type { Column } from '@/components/ui/AppDataTable.vue'
 import { getStore } from '@/services/storeService'
 import {
@@ -68,18 +68,23 @@ const typeColumns: Column[] = [
   { key: 'products_count', label: 'Products' },
   { key: 'actions', label: '', align: 'right' },
 ]
-const pricingOptions = [
+const pricingOptions: { label: string, value: PricingMode }[] = [
   { label: 'File-based (auto-priced paper)', value: 'file_based' },
   { label: 'Spec-based (quoted: tarp / shirt)', value: 'spec_based' },
 ]
-const fulfillmentOptions = [
+const fulfillmentOptions: { label: string, value: Fulfillment }[] = [
   { label: 'Manual', value: 'manual' },
   { label: 'Auto (agent, phase 2)', value: 'auto' },
 ]
 
 const showTypeForm = ref(false)
 const editingType = ref<ProductType | null>(null)
-const typeForm = useForm({ name: '', pricing_mode: 'file_based', fulfillment: 'manual', is_active: true })
+const typeForm = useForm<{ name: string, pricing_mode: PricingMode, fulfillment: Fulfillment, is_active: boolean }>({
+  name: '',
+  pricing_mode: 'file_based',
+  fulfillment: 'manual',
+  is_active: true,
+})
 
 function openTypeCreate(): void {
   editingType.value = null

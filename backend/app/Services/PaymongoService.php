@@ -16,6 +16,8 @@ use RuntimeException;
  */
 class PaymongoService
 {
+    private const WEBHOOK_TOLERANCE_SECONDS = 300;
+
     private function baseUrl(): string
     {
         return rtrim((string) config('services.paymongo.base_url', 'https://api.paymongo.com/v1'), '/');
@@ -92,6 +94,10 @@ class PaymongoService
         $timestamp = $parts['t'] ?? null;
         $provided = $parts['li'] ?? ($parts['te'] ?? null);
         if (! $timestamp || ! $provided) {
+            return false;
+        }
+
+        if (! ctype_digit((string) $timestamp) || abs(time() - (int) $timestamp) > self::WEBHOOK_TOLERANCE_SECONDS) {
             return false;
         }
 

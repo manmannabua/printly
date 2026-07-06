@@ -77,6 +77,18 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/payments/PaymentsPage.vue'),
     meta: { requiresAuth: true, layout: 'dashboard', title: 'Payments', permission: 'stores.update' },
   },
+  {
+    path: '/stores/:id/preview',
+    name: 'storefront-preview',
+    component: () => import('@/pages/storefront/StorefrontPage.vue'),
+    meta: { requiresAuth: true, layout: 'storefront', title: 'Storefront Preview', permission: 'stores.view' },
+  },
+  {
+    path: '/stores/:id/subscription',
+    name: 'store-subscription',
+    component: () => import('@/pages/subscription/SubscriptionPage.vue'),
+    meta: { requiresAuth: true, layout: 'dashboard', title: 'Subscription', permission: 'subscriptions.view' },
+  },
 
   {
     path: '/chat',
@@ -153,19 +165,20 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
+  const requiresAuth = to.meta.requiresAuth !== false
+  const isPublic = to.meta.public === true
 
-  // Lazily initialise the session on first navigation.
-  if (!authStore.initialized) {
+  // Lazily initialise the session where it matters. Public PWA routes must
+  // load even when the auth endpoint is offline.
+  if (!isPublic && !authStore.initialized) {
     await authStore.init()
   }
 
-  const requiresAuth = to.meta.requiresAuth !== false
   const requiredPermission = to.meta.permission as string | undefined
 
   // Redirect authenticated users away from guest-only pages. Public pages
   // (storefront, order tracking) stay reachable for everyone.
   const guestOnlyBypass = ['reset-password']
-  const isPublic = to.meta.public === true
   if (!requiresAuth && !isPublic && authStore.isAuthenticated && !guestOnlyBypass.includes(String(to.name)) && to.name !== 'not-found') {
     return { name: 'dashboard' }
   }
@@ -185,7 +198,7 @@ router.beforeEach(async (to) => {
 
 router.afterEach((to) => {
   const title = to.meta.title as string | undefined
-  document.title = title ? `${title} — Printly` : 'Printly'
+  document.title = title ? `${title} - Printly` : 'Printly'
 })
 
 export default router

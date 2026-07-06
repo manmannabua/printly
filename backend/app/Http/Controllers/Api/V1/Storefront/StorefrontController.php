@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Storefront;
 
 use App\Http\Controllers\Api\V1\BaseController;
 use App\Http\Controllers\Api\V1\Storefront\Concerns\ResolvesStorefront;
+use App\Models\Store;
 use App\Models\Product;
 use App\Models\ProductType;
 use Illuminate\Http\JsonResponse;
@@ -21,6 +22,25 @@ class StorefrontController extends BaseController
     {
         $store = $this->activeStore($slug);
 
+        return $this->success($this->catalogPayload($store));
+    }
+
+    /**
+     * Authenticated owner/staff preview. Unlike the public endpoint, this is
+     * membership-gated and may show trial/suspended stores before launch.
+     */
+    public function preview(Store $store): JsonResponse
+    {
+        $this->authorizeStore($store);
+
+        return $this->success($this->catalogPayload($store));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function catalogPayload(Store $store): array
+    {
         $types = $store->productTypes()
             ->where('is_active', true)
             ->with(['products' => fn ($q) => $q->where('is_active', true)
@@ -30,14 +50,14 @@ class StorefrontController extends BaseController
             ->orderBy('sort_order')
             ->get();
 
-        return $this->success([
+        return [
             'store' => [
                 'name' => $store->name,
                 'slug' => $store->slug,
                 'currency' => $store->currency,
                 'timezone' => $store->timezone,
                 'address' => $store->address,
-                'settings' => $this->publicSettings($store->settings ?? []),
+                'settings' => $this->publicSettings($store),
             ],
             'product_types' => $types->map(fn (ProductType $type) => [
                 'id' => $type->id,
@@ -63,20 +83,22 @@ class StorefrontController extends BaseController
                     ])->values(),
                 ])->values(),
             ])->values(),
-        ]);
+        ];
     }
 
     /**
      * Only customer-relevant settings; never expose internal flags wholesale.
      *
-     * @param  array<string, mixed>  $settings
      * @return array<string, mixed>
      */
-    private function publicSettings(array $settings): array
+    private function publicSettings(Store $store): array
     {
+        $settings = $store->settings ?? [];
+
         return [
             'accepts_guest' => (bool) ($settings['accepts_guest'] ?? true),
             'pay_on_pickup_allowed' => (bool) ($settings['pay_on_pickup_allowed'] ?? false),
+            'accepts_online_payments' => $store->acceptsOnlinePayments(),
         ];
     }
 }

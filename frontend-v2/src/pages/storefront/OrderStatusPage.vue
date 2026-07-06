@@ -22,8 +22,6 @@ const loading = ref(true)
 const errorMessage = ref('')
 const qrDataUrl = ref('')
 
-// The customer-facing lifecycle, in order. Terminal/exception states are handled
-// separately so we don't pretend a cancelled order is "in progress".
 const STEPS: { key: OrderStatus, label: string, icon: string }[] = [
   { key: 'pending_payment', label: 'Placed', icon: 'receipt' },
   { key: 'paid', label: 'Paid', icon: 'credit-card' },
@@ -59,7 +57,7 @@ const statusHeadline = computed(() => {
 })
 
 function formatMoney(cents: number): string {
-  return `₱${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  return `PHP ${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 async function load(): Promise<void> {
@@ -75,16 +73,14 @@ async function load(): Promise<void> {
   }
 }
 
-// Real-time updates over WebSocket; polling stays as a fallback when Reverb is
-// unavailable (the page must keep working without it).
 const { pause: pausePolling } = useIntervalFn(load, 8000)
 let unsubscribe: (() => void) | null = null
 
-// ── Customer ↔ store chat (public, code-scoped) ─────────────────────────────
 const reverb = useReverbChannel()
 const chatMessages = ref<ChatMessage[]>([])
 const chatLoading = ref(true)
 const chatTypingLabel = ref<string | null>(null)
+const chatOpen = ref(false)
 let chatTypingTimer: ReturnType<typeof setTimeout> | null = null
 
 function upsertChat(message: ChatMessage): void {
@@ -145,7 +141,7 @@ onMounted(async () => {
     if (p.side === 'customer') return
     if (chatTypingTimer) clearTimeout(chatTypingTimer)
     if (p.is_typing) {
-      chatTypingLabel.value = 'Store is typing…'
+      chatTypingLabel.value = 'Store is typing...'
       chatTypingTimer = setTimeout(() => { chatTypingLabel.value = null }, 4000)
     } else {
       chatTypingLabel.value = null
@@ -166,96 +162,124 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="py-6">
-    <div v-if="loading" class="flex flex-col items-center justify-center py-20">
+  <div class="min-h-[calc(100dvh-2rem)]">
+    <div v-if="loading" class="flex min-h-[70dvh] flex-col items-center justify-center gap-3">
       <AppSpinner size="lg" />
+      <p class="text-sm text-slate-500">Loading order...</p>
     </div>
 
-    <div v-else-if="errorMessage" class="rounded-xl border border-gray-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
-      <AppIcon name="alert-circle" :size="40" class="mx-auto text-gray-400" />
-      <p class="mt-3 font-medium text-gray-900 dark:text-white">Order not found</p>
-      <p class="mt-1 text-sm text-gray-500">{{ errorMessage }}</p>
+    <div v-else-if="errorMessage" class="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-zinc-800">
+        <AppIcon name="alert-circle" :size="30" />
+      </div>
+      <p class="mt-4 font-semibold text-slate-950 dark:text-white">Order not found</p>
+      <p class="mt-1 text-sm text-slate-500">{{ errorMessage }}</p>
     </div>
 
     <template v-else-if="order">
-      <!-- Ticket -->
-      <div class="rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <p class="text-xs uppercase tracking-wide text-gray-400">{{ order.store.name }}</p>
-        <div class="mt-3 flex justify-center">
-          <img v-if="qrDataUrl" :src="qrDataUrl" alt="Order QR code" class="rounded-lg" width="180" height="180">
-          <div v-else class="flex h-[180px] w-[180px] items-center justify-center text-gray-300">
-            <AppIcon name="qr-code" :size="120" />
+      <header class="sticky top-0 z-20 -mx-4 -mt-4 border-b border-slate-200/80 bg-slate-50/95 px-4 pb-3 pt-4 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/95">
+        <p class="text-xs font-bold uppercase tracking-wide text-slate-400">{{ order.store.name }}</p>
+        <div class="mt-2 flex items-center justify-between gap-3">
+          <div>
+            <h1 class="font-display text-2xl font-bold text-slate-950 dark:text-white">{{ statusHeadline }}</h1>
+            <p class="mt-1 font-mono text-sm font-semibold tracking-widest text-slate-500">{{ order.code }}</p>
+          </div>
+          <div
+            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl"
+            :class="isException ? 'bg-red-50 text-red-600 dark:bg-red-950/40' : 'bg-blue-50 text-blue-600 dark:bg-blue-950/50'"
+          >
+            <AppIcon :name="isException ? 'x-circle' : 'receipt'" :size="24" />
           </div>
         </div>
-        <p class="mt-4 font-mono text-2xl font-bold tracking-widest text-gray-900 dark:text-white">{{ order.code }}</p>
-        <p class="mt-1 text-sm text-gray-500">Show this code at the counter</p>
+      </header>
+
+      <div class="mt-4 grid grid-cols-[1fr_auto] gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Pickup code</p>
+          <p class="mt-2 font-mono text-3xl font-black tracking-widest text-slate-950 dark:text-white">{{ order.code }}</p>
+          <p class="mt-1 text-sm text-slate-500">Show this at the counter.</p>
+        </div>
+        <img v-if="qrDataUrl" :src="qrDataUrl" alt="Order QR code" class="h-24 w-24 rounded-2xl bg-white" width="96" height="96">
+        <div v-else class="flex h-24 w-24 items-center justify-center rounded-2xl bg-slate-100 text-slate-300 dark:bg-zinc-800">
+          <AppIcon name="qr-code" :size="60" />
+        </div>
       </div>
 
-      <!-- Status -->
-      <div class="mt-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <div
-          class="mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium"
-          :class="isException
-            ? 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300'
-            : 'bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300'"
-        >
-          <AppIcon :name="isException ? 'x-circle' : 'circle-dot'" :size="16" />
-          {{ statusHeadline }}
+      <section class="mt-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div class="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Status</p>
+            <p class="mt-1 text-lg font-bold text-slate-950 dark:text-white">{{ statusHeadline }}</p>
+          </div>
+          <span
+            class="rounded-full px-3 py-1 text-xs font-bold"
+            :class="isException
+              ? 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300'
+              : 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'"
+          >
+            Live
+          </span>
         </div>
 
-        <ol v-if="!isException" class="space-y-3">
+        <ol v-if="!isException" class="space-y-4">
           <li
             v-for="(step, i) in STEPS"
             :key="step.key"
-            class="flex items-center gap-3"
-            :class="i <= currentStepIndex ? 'text-gray-900 dark:text-white' : 'text-gray-300 dark:text-zinc-600'"
+            class="grid grid-cols-[2rem_1fr] gap-3"
+            :class="i <= currentStepIndex ? 'text-slate-950 dark:text-white' : 'text-slate-300 dark:text-zinc-600'"
           >
             <span
               class="flex h-8 w-8 items-center justify-center rounded-full"
               :class="i < currentStepIndex
-                ? 'bg-primary-600 text-white'
+                ? 'bg-blue-600 text-white'
                 : i === currentStepIndex
-                  ? 'bg-primary-100 text-primary-700 ring-2 ring-primary-600 dark:bg-primary-950'
-                  : 'bg-gray-100 dark:bg-zinc-800'"
+                  ? 'bg-blue-50 text-blue-700 ring-2 ring-blue-600 dark:bg-blue-950/40'
+                  : 'bg-slate-100 dark:bg-zinc-800'"
             >
               <AppIcon :name="i < currentStepIndex ? 'check' : step.icon" :size="16" />
             </span>
-            <span class="text-sm font-medium">{{ step.label }}</span>
+            <span class="pt-1 text-sm font-semibold">{{ step.label }}</span>
           </li>
         </ol>
 
-        <p v-else class="text-sm text-gray-500">
-          This order won’t be fulfilled. If you’ve already paid, a refund will be processed.
+        <p v-else class="text-sm text-slate-500">
+          This order will not be fulfilled. If you have already paid, a refund will be processed.
         </p>
+      </section>
+
+      <div class="mt-4 flex items-center justify-between rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <span class="text-sm font-semibold text-slate-500">Total</span>
+        <span class="text-xl font-bold text-slate-950 dark:text-white">{{ formatMoney(order.total_cents) }}</span>
       </div>
 
-      <!-- Total -->
-      <div class="mt-4 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-6 py-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <span class="text-sm text-gray-500">Total</span>
-        <span class="text-lg font-semibold text-gray-900 dark:text-white">{{ formatMoney(order.total_cents) }}</span>
-      </div>
-
-      <!-- Chat with the store -->
-      <AppCard class="mt-4 overflow-hidden p-0">
-        <div class="flex items-center gap-2 border-b border-gray-200 px-4 py-3 dark:border-zinc-800">
-          <AppIcon name="message-circle" :size="18" class="text-cyan-600" />
-          <p class="text-sm font-semibold text-gray-900 dark:text-white">Chat with the store</p>
+      <AppCard class="mt-4 overflow-hidden rounded-3xl p-0">
+        <button class="flex w-full items-center gap-3 px-4 py-4 text-left" @click="chatOpen = !chatOpen">
+          <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40">
+            <AppIcon name="message-circle" :size="20" />
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-bold text-slate-950 dark:text-white">Chat with the store</p>
+            <p class="truncate text-xs text-slate-500">{{ chatTypingLabel ?? 'Questions about your order? Message here.' }}</p>
+          </div>
+          <AppIcon :name="chatOpen ? 'chevron-down' : 'chevron-right'" :size="18" class="text-slate-400" />
+        </button>
+        <div v-if="chatOpen" class="border-t border-slate-200 dark:border-zinc-800">
+          <ChatThread
+            class="h-[60dvh] max-h-[520px]"
+            :messages="chatMessages"
+            my-side="customer"
+            :loading="chatLoading"
+            :typing-label="chatTypingLabel"
+            empty-hint="Questions about your order? Message the store here."
+            @send="onChatSend"
+            @react="onChatReact"
+            @typing="onChatTyping"
+            @attach="onChatAttach"
+          />
         </div>
-        <ChatThread
-          class="h-80"
-          :messages="chatMessages"
-          my-side="customer"
-          :loading="chatLoading"
-          :typing-label="chatTypingLabel"
-          empty-hint="Questions about your order? Message the store here."
-          @send="onChatSend"
-          @react="onChatReact"
-          @typing="onChatTyping"
-          @attach="onChatAttach"
-        />
       </AppCard>
 
-      <p class="mt-4 text-center text-xs text-gray-400">
+      <p class="mt-4 text-center text-xs text-slate-400">
         This page updates automatically.
       </p>
     </template>
