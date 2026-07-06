@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Printly helps print shops take online orders, quote files, collect payments, and manage pickup queues from one simple workflow."
+    />
+    <title>Printly | Online ordering for print shops</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="site-header">
+        <a class="brand" href="#top" aria-label="Printly home">
+          <span class="brand-mark">P</span>
+          <span>Printly</span>
+        </a>
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="#workflow">Workflow</a>
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#demo">Demo</a>
+        </nav>
+        <a class="header-cta" href="mailto:hello@printly.test?subject=Printly early access">Early access</a>
+      </header>
+
+      <main id="top">
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <p class="eyebrow">Online ordering for campus and neighborhood print shops</p>
+            <h1 id="hero-title">Printly</h1>
+            <p class="hero-lede">
+              Customers upload files, get an instant quote, pay or reserve, and track pickup by QR.
+              Stores get a live queue, transparent pricing, and optional auto-print routing.
+            </p>
+            <div class="hero-actions" aria-label="Primary actions">
+              <a class="button button-primary" href="mailto:hello@printly.test?subject=Printly early access">Join early access</a>
+              <a class="button button-secondary" href="#workflow">See how it works</a>
+            </div>
+            <dl class="proof-strip" aria-label="Product proof points">
+              <div>
+                <dt>4-step</dt>
+                <dd>customer checkout</dd>
+              </div>
+              <div>
+                <dt>Realtime</dt>
+                <dd>queue updates</dd>
+              </div>
+              <div>
+                <dt>PHP</dt>
+                <dd>centavo pricing</dd>
+              </div>
+            </dl>
+          </div>
+          <figure class="hero-media">
+            <img
+              src="/assets/printly-hero.png"
+              alt="Printly dashboard and mobile upload workflow shown on devices inside a print shop"
+              width="1536"
+              height="1024"
+            />
+          </figure>
+        </section>
+
+        <section class="pain-section" aria-labelledby="pain-title">
+          <div class="section-intro">
+            <p class="eyebrow">Why shops switch</p>
+            <h2 id="pain-title">Orders should not live in chat threads and paper slips.</h2>
+          </div>
+          <div class="pain-grid">
+            <article>
+              <h3>Manual quotes slow the counter</h3>
+              <p>Page count, color, paper size, and copies are priced before the order reaches staff.</p>
+            </article>
+            <article>
+              <h3>Pickup status stays visible</h3>
+              <p>Customers track pending, printing, ready, and completed states without calling the shop.</p>
+            </article>
+            <article>
+              <h3>Files stay attached to orders</h3>
+              <p>Every document, pricing snapshot, note, and status change follows the order code.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="workflow" class="workflow-section" aria-labelledby="workflow-title">
+          <div class="section-intro">
+            <p class="eyebrow">The product flow</p>
+            <h2 id="workflow-title">From upload to pickup in one clean path.</h2>
+          </div>
+          <div class="workflow-grid">
+            <article class="workflow-step">
+              <span class="step-number">01</span>
+              <h3>Upload</h3>
+              <p>Customers choose a store product, upload a PDF or image, and confirm print options.</p>
+            </article>
+            <article class="workflow-step">
+              <span class="step-number">02</span>
+              <h3>Quote</h3>
+              <p>Printly calculates the total from file analysis, store rules, copies, and selected specs.</p>
+            </article>
+            <article class="workflow-step">
+              <span class="step-number">03</span>
+              <h3>Queue</h3>
+              <p>Paid and pickup orders appear on the store board with files, notes, and customer chat.</p>
+            </article>
+            <article class="workflow-step">
+              <span class="step-number">04</span>
+              <h3>Pickup</h3>
+              <p>The order code becomes the QR pickup reference and public tracking link.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="features" class="features-section" aria-labelledby="features-title">
+          <div class="section-intro">
+            <p class="eyebrow">Built for print operations</p>
+            <h2 id="features-title">The storefront, counter, and printer room stay in sync.</h2>
+          </div>
+          <div class="feature-matrix">
+            <article>
+              <h3>Hosted storefront</h3>
+              <p>Each shop gets a public `/s/store-slug` ordering page for document and custom products.</p>
+            </article>
+            <article>
+              <h3>Pricing engine</h3>
+              <p>Rules cover file-based page pricing and spec-based products like tarpaulins or shirts.</p>
+            </article>
+            <article>
+              <h3>Live queue board</h3>
+              <p>Staff can move orders through accepted, in progress, ready, completed, failed, or refunded.</p>
+            </article>
+            <article>
+              <h3>Payments</h3>
+              <p>Connect PayMongo for GCash, Maya, and card checkout, or keep cash-on-pickup enabled.</p>
+            </article>
+            <article>
+              <h3>Customer chat</h3>
+              <p>Order-scoped messages keep clarifications attached to the exact file and job.</p>
+            </article>
+            <article>
+              <h3>Auto-print option</h3>
+              <p>The local agent can route accepted jobs to mapped printers when a shop is ready.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="pricing" class="pricing-section" aria-labelledby="pricing-title">
+          <div class="section-intro">
+            <p class="eyebrow">Plans</p>
+            <h2 id="pricing-title">Start manual. Upgrade when the shop needs more automation.</h2>
+          </div>
+          <div class="pricing-grid">
+            <article class="plan">
+              <h3>Starter</h3>
+              <p class="price">Free</p>
+              <p>Storefront, manual print queue, cash-on-pickup, 2 staff seats, and 20 products.</p>
+            </article>
+            <article class="plan plan-highlight">
+              <p class="plan-label">Most shops</p>
+              <h3>Pro</h3>
+              <p class="price">PHP 499<span>/mo</span></p>
+              <p>Online payments, reports, customer chat, 8 staff seats, and unlimited products.</p>
+            </article>
+            <article class="plan">
+              <h3>Auto</h3>
+              <p class="price">PHP 999<span>/mo</span></p>
+              <p>Everything in Pro plus the auto-print bridge, unlimited seats, and unlimited products.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="demo" class="demo-section" aria-labelledby="demo-title">
+          <div>
+            <p class="eyebrow">Demo path</p>
+            <h2 id="demo-title">Use the product story from the current app.</h2>
+            <p>
+              The landing page is designed around the existing Printly modules: Campus Print Hub storefront,
+              file upload, quote, order tracking, queue board, payment settings, subscription gates, and auto-print.
+            </p>
+          </div>
+          <div class="demo-panel" aria-label="Demo checklist">
+            <p><strong>Customer:</strong> upload file, choose print options, receive QR.</p>
+            <p><strong>Store:</strong> accept order, print, mark ready, close pickup.</p>
+            <p><strong>Owner:</strong> configure catalog, payments, printers, and plan.</p>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <span>Printly</span>
+        <span>Online ordering for print shops.</span>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
