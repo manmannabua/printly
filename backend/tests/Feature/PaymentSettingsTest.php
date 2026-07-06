@@ -17,7 +17,8 @@ beforeEach(function () {
         'id' => (string) Str::uuid(), 'created_at' => now(),
     ]);
 
-    $this->store = Store::create(['name' => 'Shop', 'slug' => 'shop', 'status' => 'active']);
+    // Online payments is a Pro+ feature (plan-gated) — this shop is on Pro.
+    $this->store = Store::create(['name' => 'Shop', 'slug' => 'shop', 'plan' => 'pro', 'status' => 'active']);
     $this->store->users()->attach($this->owner->id, ['id' => (string) Str::uuid(), 'role' => 'owner']);
 });
 

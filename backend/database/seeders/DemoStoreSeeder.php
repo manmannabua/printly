@@ -29,7 +29,9 @@ class DemoStoreSeeder extends Seeder
             ['slug' => 'campus-print-hub'],
             [
                 'name' => 'Campus Print Hub',
-                'plan' => 'pro',
+                // "Auto" plan so auto-print works out of the box (it's the plan
+                // that unlocks the print-agent bridge — see config/plans.php).
+                'plan' => 'auto',
                 'status' => 'active',
                 'timezone' => 'Asia/Manila',
                 'currency' => 'PHP',
@@ -41,6 +43,11 @@ class DemoStoreSeeder extends Seeder
                 ],
             ],
         );
+
+        // Put the demo store on the Auto plan (self-healing for a store seeded
+        // before the subscription module existed) so auto-print — which the Auto
+        // plan unlocks — works out of the box, and record its subscription.
+        app(\App\Services\SubscriptionService::class)->changePlan($store, 'auto', 'seed');
 
         $this->seedStaff($store);
         $this->seedDocumentPrinting($store);

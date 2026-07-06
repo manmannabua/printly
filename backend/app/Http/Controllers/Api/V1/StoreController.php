@@ -7,11 +7,14 @@ use App\Http\Requests\Store\UpdateStoreRequest;
 use App\Http\Resources\StoreResource;
 use App\Models\AuditLog;
 use App\Models\Store;
+use App\Services\SubscriptionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class StoreController extends BaseController
 {
+    public function __construct(private readonly SubscriptionService $subscriptions) {}
+
     public function index(Request $request): JsonResponse
     {
         $query = Store::withCount(['productTypes', 'products']);
@@ -39,6 +42,10 @@ class StoreController extends BaseController
                 'role' => 'owner',
             ]);
         }
+
+        // Every store carries a Printly subscription from birth (default plan,
+        // trial window) — that's the revenue ledger, separate from customer pay.
+        $this->subscriptions->ensureFor($store);
 
         AuditLog::log($store, 'created', null, $store->toArray());
 

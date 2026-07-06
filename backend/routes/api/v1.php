@@ -18,6 +18,8 @@ use App\Http\Controllers\Api\V1\Printing\PrinterController;
 use App\Http\Controllers\Api\V1\Printing\PrintJobController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\StoreController;
+use App\Http\Controllers\Api\V1\Storefront\StorefrontController;
+use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\UploadController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
@@ -85,6 +87,7 @@ Route::delete('uploads', [UploadController::class, 'destroy'])->name('uploads.de
 Route::middleware('permission:stores.view')->group(function () {
     Route::get('stores', [StoreController::class, 'index'])->name('stores.index');
     Route::get('stores/{store}', [StoreController::class, 'show'])->name('stores.show');
+    Route::get('stores/{store}/storefront-preview', [StorefrontController::class, 'preview'])->name('stores.storefront-preview');
 });
 Route::post('stores', [StoreController::class, 'store'])->middleware('permission:stores.create')->name('stores.store');
 Route::put('stores/{store}', [StoreController::class, 'update'])->middleware('permission:stores.update')->name('stores.update');
@@ -143,7 +146,9 @@ Route::prefix('stores/{store}')->name('stores.')->group(function () {
         Route::get('printers/{printer}', [PrinterController::class, 'show'])->name('printers.show');
         Route::get('print-jobs', [PrintJobController::class, 'index'])->name('print-jobs.index');
     });
-    Route::middleware('permission:printers.manage')->group(function () {
+    // Auto-print is the paid "Auto" upsell — configuring agents/printers needs
+    // the plan that unlocks it (view routes stay open so the UI can upsell).
+    Route::middleware(['permission:printers.manage', 'plan:auto_print'])->group(function () {
         Route::post('print-agents', [PrintAgentController::class, 'store'])->name('print-agents.store');
         Route::put('print-agents/{printAgent}', [PrintAgentController::class, 'update'])->name('print-agents.update');
         Route::patch('print-agents/{printAgent}', [PrintAgentController::class, 'update']);
@@ -164,6 +169,12 @@ Route::prefix('stores/{store}')->name('stores.')->group(function () {
         Route::put('payment-settings', [PaymentSettingsController::class, 'update'])->name('payment-settings.update');
         Route::delete('payment-settings', [PaymentSettingsController::class, 'destroy'])->name('payment-settings.destroy');
     });
+
+    // ── Subscription: the store's Printly plan (view for owners, change is admin) ─
+    Route::get('subscription', [SubscriptionController::class, 'show'])
+        ->middleware('permission:subscriptions.view')->name('subscription.show');
+    Route::put('subscription', [SubscriptionController::class, 'update'])
+        ->middleware('permission:subscriptions.manage')->name('subscription.update');
 });
 
 // ── Administration: users / roles / permissions / audit ─────────────────

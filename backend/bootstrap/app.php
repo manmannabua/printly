@@ -54,6 +54,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'permission' => \App\Http\Middleware\CheckPermission::class,
+            'plan' => \App\Http\Middleware\CheckPlanFeature::class,
             'role' => \App\Http\Middleware\CheckRole::class,
             'active' => \App\Http\Middleware\EnsureUserIsActive::class,
             'agent.auth' => \App\Http\Middleware\AuthenticatePrintAgent::class,

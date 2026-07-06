@@ -28,6 +28,8 @@ beforeEach(function () {
     $this->store = Store::create([
         'name' => 'Campus Print Hub',
         'slug' => 'campus-print-hub',
+        // Auto-print is now plan-gated — the Auto plan is what unlocks it.
+        'plan' => 'auto',
         'status' => 'active',
         'settings' => ['auto_print' => true],
     ]);

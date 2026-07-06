@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\PlanCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,6 +18,10 @@ class StoreResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'plan' => $this->plan,
+            // Feature keys the plan unlocks — lets the UI hint upsells without a
+            // round-trip. Authoritative (lapse-aware) entitlements live on the
+            // subscription endpoint; this is derived cheaply from the column.
+            'plan_features' => PlanCatalog::features($this->plan),
             'status' => $this->status,
             'timezone' => $this->timezone,
             'currency' => $this->currency,
