@@ -95,10 +95,10 @@ export default defineConfig({
     dedupe: ['vue', '@vue/runtime-core', '@vue/runtime-dom', '@vue/reactivity'],
   },
   server: {
-    // 5173 matches the backend's SANCTUM_STATEFUL_DOMAINS / FRONTEND_URL, so
+    // 5190 matches the backend's SANCTUM_STATEFUL_DOMAINS / FRONTEND_URL, so
     // admin cookie auth works out of the box. strictPort: never silently drift
-    // to 5175 (which isn't in the CORS/Sanctum allow-list → login just fails).
-    port: 5173,
+    // to another port (which isn't in the CORS/Sanctum allow-list → login just fails).
+    port: 5190,
     strictPort: true,
     proxy: {
       '/api': {
