@@ -23,6 +23,7 @@ class OrderFileResource extends BaseResource
             'is_color' => $this->is_color,
             'analysis_status' => $this->analysis_status,
             'analysis_error' => $this->analysis_error,
+            'upload_token' => $this->when(isset($this->upload_token), $this->upload_token),
             'created_at' => $this->created_at,
         ];
     }

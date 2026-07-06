@@ -77,6 +77,17 @@ it('rejects an unsupported file type', function () {
         ->assertJsonValidationErrors(['file']);
 });
 
+it('rejects zip files on staff order uploads', function () {
+    Storage::fake('private');
+
+    $this->actingAs($this->admin)
+        ->postJson("/api/v1/stores/{$this->store->id}/files", [
+            'file' => UploadedFile::fake()->create('archive.zip', 12, 'application/zip'),
+        ])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['file']);
+});
+
 it('analyzes a PDF: page count and paper size', function () {
     Storage::fake('private');
 

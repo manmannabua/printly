@@ -25,6 +25,8 @@ class OrderFile extends Model
         'mime',
         'size_bytes',
         'storage_path',
+        'upload_token_hash',
+        'upload_token_expires_at',
         'page_count',
         'paper_size',
         'is_color',
@@ -39,6 +41,7 @@ class OrderFile extends Model
         'page_count' => 'integer',
         'color_pages' => 'integer',
         'is_color' => 'boolean',
+        'upload_token_expires_at' => 'datetime',
     ];
 
     public function store(): BelongsTo

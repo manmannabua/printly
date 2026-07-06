@@ -8,16 +8,16 @@ use App\Http\Requests\Order\UploadOrderFileRequest;
 use App\Http\Resources\OrderFileResource;
 use App\Jobs\AnalyzeOrderFile;
 use App\Models\OrderFile;
+use App\Services\PublicUploadTokenService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class StorefrontFileController extends BaseController
 {
     use ResolvesStorefront;
 
-    /**
-     * Guest upload of a print file to a store, before checkout. Same pipeline as
-     * the staff upload — stored privately, analysis queued — but public + throttled.
-     */
+    public function __construct(private readonly PublicUploadTokenService $tokens) {}
+
     public function store(UploadOrderFileRequest $request, string $slug): JsonResponse
     {
         $store = $this->activeStore($slug);
@@ -33,20 +33,18 @@ class StorefrontFileController extends BaseController
             'storage_path' => $path,
             'analysis_status' => OrderFile::ANALYSIS_PENDING,
         ]);
+        $file->upload_token = $this->tokens->issue($file);
 
         AnalyzeOrderFile::dispatch($file->id);
 
         return $this->success(new OrderFileResource($file), 'File uploaded; analysis queued.', 201);
     }
 
-    /**
-     * Poll a file's analysis status. Scoped to the store so a guest can only
-     * read files belonging to the store they uploaded to.
-     */
-    public function show(string $slug, OrderFile $orderFile): JsonResponse
+    public function show(Request $request, string $slug, OrderFile $orderFile): JsonResponse
     {
         $store = $this->activeStore($slug);
         abort_unless($orderFile->store_id === $store->id, 404, 'File not found.');
+        abort_unless($this->tokens->isValid($orderFile, $request->query('token')), 404, 'File not found.');
 
         return $this->success(new OrderFileResource($orderFile));
     }
