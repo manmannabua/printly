@@ -5,7 +5,7 @@ import { useApiList } from '@/composables/useApiList'
 import { useForm } from '@/composables/useForm'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
-import type { Store } from '@/types/printly'
+import type { Store, StorePlan, StoreStatus } from '@/types/printly'
 import type { Column } from '@/components/ui/AppDataTable.vue'
 import { createStore, updateStore, deleteStore } from '@/services/storeService'
 import AppPageHeader from '@/components/ui/AppPageHeader.vue'
@@ -40,12 +40,12 @@ const columns: Column[] = [
   { key: 'actions', label: '', align: 'right' },
 ]
 
-const planOptions = [
+const planOptions: { label: string, value: StorePlan }[] = [
   { label: 'Starter', value: 'starter' },
   { label: 'Pro', value: 'pro' },
   { label: 'Auto', value: 'auto' },
 ]
-const statusOptions = [
+const statusOptions: { label: string, value: StoreStatus }[] = [
   { label: 'Trial', value: 'trial' },
   { label: 'Active', value: 'active' },
   { label: 'Suspended', value: 'suspended' },
@@ -62,7 +62,13 @@ const statusVariant: Record<string, 'neutral' | 'success' | 'danger'> = {
 const showForm = ref(false)
 const editing = ref<Store | null>(null)
 
-const form = useForm({
+const form = useForm<{
+  name: string
+  slug: string
+  plan: StorePlan
+  status: StoreStatus
+  address: string
+}>({
   name: '',
   slug: '',
   plan: 'starter',

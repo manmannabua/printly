@@ -25,13 +25,19 @@ const touchStartX = ref(0)
 const touchStartY = ref(0)
 
 function onPanelTouchStart(e: TouchEvent) {
-  touchStartX.value = e.touches[0].clientX
-  touchStartY.value = e.touches[0].clientY
+  const touch = e.touches[0]
+  if (!touch) return
+
+  touchStartX.value = touch.clientX
+  touchStartY.value = touch.clientY
 }
 
 function onPanelTouchEnd(e: TouchEvent) {
-  const dx = e.changedTouches[0].clientX - touchStartX.value
-  const dy = e.changedTouches[0].clientY - touchStartY.value
+  const touch = e.changedTouches[0]
+  if (!touch) return
+
+  const dx = touch.clientX - touchStartX.value
+  const dy = touch.clientY - touchStartY.value
   // Close on leftward swipe > 60px where horizontal motion dominates
   if (dx < -60 && Math.abs(dx) > Math.abs(dy)) {
     setOpenMobile(false)

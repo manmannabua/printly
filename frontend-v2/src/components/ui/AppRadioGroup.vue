@@ -37,7 +37,8 @@ const errorMessage = computed(() => {
 
 const hasError = computed(() => !!errorMessage.value)
 
-function handleChange(value: string): void {
+function handleChange(value: unknown): void {
+  if (typeof value !== 'string' && typeof value !== 'number') return
   emit('update:modelValue', value)
 }
 </script>

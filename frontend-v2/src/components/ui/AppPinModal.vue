@@ -23,8 +23,8 @@ const digits = ref(['', '', '', ''])
 const inputRefs = ref<(HTMLInputElement | null)[]>([])
 
 function setRef(index: number) {
-  return (el: HTMLInputElement | null) => {
-    inputRefs.value[index] = el
+  return (el: unknown) => {
+    inputRefs.value[index] = el instanceof HTMLInputElement ? el : null
   }
 }
 

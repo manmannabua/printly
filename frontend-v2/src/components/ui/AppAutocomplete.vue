@@ -148,8 +148,9 @@ function handleKeydown(event: KeyboardEvent): void {
     }
     case 'Enter': {
       event.preventDefault()
-      if (highlightedIndex.value >= 0 && highlightedIndex.value < options.value.length) {
-        selectOption(options.value[highlightedIndex.value])
+      const option = options.value[highlightedIndex.value]
+      if (option) {
+        selectOption(option)
       }
       break
     }

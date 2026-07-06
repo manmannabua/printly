@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Skeleton from './Skeleton.vue'
 import SkeletonLine from './SkeletonLine.vue'
 
 const props = withDefaults(defineProps<{

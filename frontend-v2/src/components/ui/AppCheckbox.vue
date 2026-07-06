@@ -23,8 +23,8 @@ const errorMessage = computed(() => {
   return props.error
 })
 
-function handleChange(checked: boolean): void {
-  emit('update:modelValue', checked)
+function handleChange(checked: boolean | 'indeterminate'): void {
+  emit('update:modelValue', checked === true)
 }
 </script>
 

@@ -3,7 +3,7 @@ import { computed } from 'vue'
 
 export interface SelectOption {
   label: string
-  value: string | number
+  value: string | number | boolean | null
   disabled?: boolean
 }
 
@@ -13,7 +13,7 @@ export interface SelectOptionGroup {
 }
 
 const props = defineProps<{
-  modelValue?: string | number | null
+  modelValue?: string | number | boolean | null
   label?: string
   placeholder?: string
   options?: SelectOption[]
@@ -26,17 +26,18 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string | number | null]
+  'update:modelValue': [value: string | number | boolean | null]
 }>()
+
+const flatOptions = computed(() => props.optionGroups
+  ? props.optionGroups.flatMap((g) => g.options)
+  : (props.options ?? []))
 
 const inputId = computed(() => props.id || (props.label ? `select-${props.label.toLowerCase().replace(/\s+/g, '-')}` : undefined))
 
 const showPlaceholderOption = computed(() => {
   if (!props.placeholder) return false
-  const flatOptions = props.optionGroups
-    ? props.optionGroups.flatMap((g) => g.options)
-    : (props.options ?? [])
-  return !flatOptions.some((o) => o.value === '' || o.value === null)
+  return !flatOptions.value.some((o) => o.value === '' || o.value === null)
 })
 
 const errorMessage = computed(() => {
@@ -49,7 +50,8 @@ const hasError = computed(() => !!errorMessage.value)
 
 function handleChange(event: Event): void {
   const value = (event.target as HTMLSelectElement).value
-  emit('update:modelValue', value === '' ? null : value)
+  const option = flatOptions.value.find((opt) => String(opt.value) === value)
+  emit('update:modelValue', option ? option.value : value === '' ? null : value)
 }
 </script>
 
@@ -83,7 +85,7 @@ function handleChange(event: Event): void {
         <optgroup v-for="group in optionGroups" :key="group.label" :label="group.label">
           <option
             v-for="opt in group.options"
-            :key="opt.value"
+            :key="String(opt.value)"
             :value="opt.value"
             :disabled="opt.disabled"
           >
@@ -94,7 +96,7 @@ function handleChange(event: Event): void {
       <template v-else>
         <option
           v-for="opt in options"
-          :key="opt.value"
+            :key="String(opt.value)"
           :value="opt.value"
           :disabled="opt.disabled"
         >

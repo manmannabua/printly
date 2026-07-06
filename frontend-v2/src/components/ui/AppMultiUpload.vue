@@ -88,9 +88,9 @@ async function onChange(event: Event): Promise<void> {
       :disabled="disabled"
       @click="pick"
     >
-      <template v-if="uploading">Uploading {{ progress.done }}/{{ progress.total }}â€¦</template>
+      <template v-if="uploading">Uploading {{ progress.done }}/{{ progress.total }}...</template>
       <template v-else>Upload images</template>
     </AppButton>
-    <p class="mt-1 text-xs text-gray-400">Select one or more â€” PNG, JPG or WebP up to {{ maxSizeMb }} MB each.</p>
+    <p class="mt-1 text-xs text-gray-400">Select one or more: PNG, JPG or WebP up to {{ maxSizeMb }} MB each.</p>
   </div>
 </template>

@@ -65,8 +65,8 @@ function cancelTransition() {
 <template>
   <div
     ref="scrollRef"
-    class="flex items-stretch gap-4 overflow-x-auto pb-4"
-    :class="props.fullscreen ? 'h-full min-h-0 flex-1' : 'h-[calc(100vh-260px)]'"
+    class="grid grid-flow-col auto-cols-[minmax(220px,1fr)] items-stretch gap-3 overflow-x-auto pb-3 xl:grid-flow-row xl:grid-cols-6 xl:overflow-x-visible"
+    :class="props.fullscreen ? 'h-full min-h-0 flex-1' : 'h-[calc(100vh-252px)]'"
     @dragend="onDragEnd"
   >
     <OrderColumn

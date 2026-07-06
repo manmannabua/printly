@@ -23,7 +23,7 @@ const initials = computed(() => {
   if (props.name) {
     const parts = props.name.trim().split(/\s+/).filter(Boolean)
     const first = parts[0]?.charAt(0) ?? ''
-    const last  = parts.length > 1 ? parts[parts.length - 1].charAt(0) : ''
+    const last = parts.length > 1 ? (parts[parts.length - 1]?.charAt(0) ?? '') : ''
     const out = (first + last).toUpperCase()
     if (out) return out
   }

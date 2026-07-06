@@ -25,7 +25,7 @@ export interface UseApiListReturn<T> {
   filters: Record<string, unknown>
   currentPage: number
   perPage: number
-  paginationProps: { currentPage: number; lastPage: number; total: number; from: number; to: number; perPage: number } | undefined
+  paginationProps: { currentPage: number; lastPage: number; total: number; from: number | null; to: number | null; perPage: number } | undefined
   fetch: () => Promise<void>
   setSort: (field: string) => void
   setPage: (page: number) => void

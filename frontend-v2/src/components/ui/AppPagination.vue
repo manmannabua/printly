@@ -71,7 +71,8 @@ function goToPage(page: number): void {
   emit('update:currentPage', page)
 }
 
-function handlePerPageChange(value: string): void {
+function handlePerPageChange(value: unknown): void {
+  if (value === null || value === undefined) return
   emit('update:perPage', Number(value))
 }
 </script>

@@ -71,66 +71,12 @@
   --color-info-900: #1e3a8a;
   --color-info-950: #172554;
 
-  /* ── Atlas: public-facing marketplace theme ──────────────────────────── */
-  /* Display / body type for the public portal */
+  /* Printly display/body type */
   --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Hanken Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
-
-  /* Estate green — primary accent for the public site */
-  --color-estate-50: #ecf6f2;
-  --color-estate-100: #d0eae0;
-  --color-estate-200: #a3d6c4;
-  --color-estate-300: #6fbda4;
-  --color-estate-400: #3f9d83;
-  --color-estate-500: #258067;
-  --color-estate-600: #1c6b57;
-  --color-estate-700: #155544;
-  --color-estate-800: #134537;
-  --color-estate-900: #11392f;
-  --color-estate-950: #07211b;
-
-  /* Gold — reserved for prices */
-  --color-gold-50: #fbf7ec;
-  --color-gold-100: #f5ebcb;
-  --color-gold-200: #ead592;
-  --color-gold-300: #ddbb5c;
-  --color-gold-400: #cda23a;
-  --color-gold-500: #b88a2c;
-  --color-gold-600: #b0832b;
-  --color-gold-700: #8a6420;
-  --color-gold-800: #6f4f1d;
-  --color-gold-900: #5e431c;
-  --color-gold-950: #36260d;
-
-  /* Atlas neutrals */
-  --color-canvas: #fafaf8;
-  --color-canvas-dark: #0f1311;
-  --color-ink: #15181c;
-  --color-ink-soft: #4b5159;
-  --color-sand: #e7e1d5;
 }
 
-/*
- * Public "Atlas" pages remap the shared primary scale to estate green, so
- * primary-themed shared components (AppButton, focus rings, links) automatically
- * match the public identity without per-instance overrides. Scoped to .atlas
- * (the PublicLayout root) so the admin theme stays Tailwind blue.
- */
-.atlas {
-  --color-primary-50: #ecf6f2;
-  --color-primary-100: #d0eae0;
-  --color-primary-200: #a3d6c4;
-  --color-primary-300: #6fbda4;
-  --color-primary-400: #3f9d83;
-  --color-primary-500: #258067;
-  --color-primary-600: #1c6b57;
-  --color-primary-700: #155544;
-  --color-primary-800: #134537;
-  --color-primary-900: #11392f;
-  --color-primary-950: #07211b;
-}
-
-/* shadcn-vue CSS variables — mapped to HRIS palette */
+/* shadcn-vue CSS variables mapped to the Printly app palette */
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

@@ -20,7 +20,7 @@ const STYLES: Record<DashboardAlert['severity'], { dot: string, icon: string }> 
     <CardContent>
       <div v-if="alerts.length === 0" class="flex flex-col items-center gap-2 py-6 text-center">
         <AppIcon name="circle-check" :size="28" class="text-emerald-500" />
-        <p class="text-sm text-muted-foreground">All clear — nothing needs attention.</p>
+        <p class="text-sm text-muted-foreground">All clear - nothing needs attention.</p>
       </div>
       <ul v-else class="space-y-2">
         <li

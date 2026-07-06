@@ -15,7 +15,7 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
-    'company_name' => env('APP_COMPANY_NAME', env('APP_NAME', 'HRIS')),
+    'company_name' => env('APP_COMPANY_NAME', env('APP_NAME', 'Printly')),
 
     'mobile_company_code' => env('MOBILE_COMPANY_CODE', ''),
 

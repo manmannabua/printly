@@ -36,12 +36,12 @@ function itemsSummary(o: Order): string {
 
 <template>
   <div
-    class="cursor-grab rounded-md border border-gray-200 bg-white p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing dark:border-gray-700 dark:bg-gray-800"
+    class="cursor-grab rounded-md border border-gray-200 bg-white p-2.5 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing dark:border-gray-700 dark:bg-gray-800"
     :class="{ 'cursor-default active:cursor-default': !draggable }"
     :draggable="draggable"
     @dragstart="$emit('drag-start', order)"
   >
-    <div class="flex items-start gap-2.5">
+    <div class="flex items-start gap-2">
       <span
         class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full"
         :class="STATUS_DOT[order.status] ?? 'bg-gray-400'"
@@ -49,7 +49,7 @@ function itemsSummary(o: Order): string {
       <div class="min-w-0 flex-1">
         <div class="flex items-center justify-between gap-2">
           <button
-            class="rounded font-mono text-sm font-semibold text-gray-900 hover:text-primary-600 hover:underline dark:text-gray-100 dark:hover:text-primary-400"
+            class="truncate rounded font-mono text-xs font-semibold text-gray-900 hover:text-primary-600 hover:underline dark:text-gray-100 dark:hover:text-primary-400"
             title="View order details"
             @click.stop="$emit('open', order)"
           >{{ order.code }}</button>
@@ -63,7 +63,7 @@ function itemsSummary(o: Order): string {
         </div>
         <p class="truncate text-xs text-gray-500 dark:text-gray-400">{{ itemsSummary(order) }}</p>
         <div class="mt-1.5 flex items-center justify-between gap-2">
-          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ formatMoney(order.total_cents) }}</span>
+          <span class="text-xs font-semibold text-gray-900 dark:text-gray-100">{{ formatMoney(order.total_cents) }}</span>
           <span class="truncate text-xs capitalize text-gray-400">{{ order.payment_status.replace(/_/g, ' ') }}</span>
         </div>
         <div v-if="order.placed_at" class="mt-0.5 flex items-center gap-1 text-xs text-gray-400">

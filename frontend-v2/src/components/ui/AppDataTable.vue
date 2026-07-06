@@ -38,7 +38,15 @@ function handleSort(column: Column): void {
 }
 
 function getCellValue(row: Record<string, unknown>, key: string): unknown {
-  return key.includes('.') ? key.split('.').reduce((obj, k) => (obj as Record<string, unknown>)?.[k], row) : row[key]
+  if (!key.includes('.')) return row[key]
+
+  let value: unknown = row
+  for (const segment of key.split('.')) {
+    if (value === null || typeof value !== 'object') return undefined
+    value = (value as Record<string, unknown>)[segment]
+  }
+
+  return value
 }
 
 const alignClasses: Record<string, string> = {

@@ -118,7 +118,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex h-[calc(100vh-7rem)] overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+  <div class="flex h-[calc(100vh-11.75rem-env(safe-area-inset-bottom))] min-h-[28rem] overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
     <!-- Conversation list -->
     <aside
       class="w-full shrink-0 border-r border-gray-200 dark:border-gray-800 sm:w-72"

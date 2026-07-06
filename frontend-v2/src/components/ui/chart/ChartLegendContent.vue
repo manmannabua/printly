@@ -16,12 +16,14 @@ const props = withDefaults(defineProps<{
 
 const { id, config } = useChart()
 
-const payload = computed(() => Object.entries(config.value).map(([key, value]) => {
-  return {
-    key: props.nameKey || key,
-    itemConfig: config.value[key],
-  }
-}))
+const payload = computed(() => Object.entries(config.value)
+  .filter((entry): entry is [string, NonNullable<typeof entry[1]>] => Boolean(entry[1]))
+  .map(([key, itemConfig]) => {
+    return {
+      key: props.nameKey || key,
+      itemConfig,
+    }
+  }))
 
 const containerSelector = ref("")
 onMounted(() => {

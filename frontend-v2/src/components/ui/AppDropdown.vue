@@ -67,8 +67,9 @@ function handleKeydown(event: KeyboardEvent, items: DropdownItem[]): void {
     case 'Enter':
     case ' ': {
       event.preventDefault()
-      if (focusedIndex.value >= 0 && focusedIndex.value < actionable.length) {
-        selectItem(actionable[focusedIndex.value])
+      const item = actionable[focusedIndex.value]
+      if (item) {
+        selectItem(item)
       }
       break
     }

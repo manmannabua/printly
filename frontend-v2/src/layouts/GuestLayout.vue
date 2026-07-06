@@ -25,11 +25,11 @@ const logoError = ref(false)
       <img
         v-if="!logoError"
         src="/logo.png"
-        alt="Logo"
+        alt="Printly"
         class="mx-auto mb-2 max-h-16 max-w-[300px] object-contain"
         @error="logoError = true"
       >
-      <h1 v-else class="text-3xl font-bold text-primary-600 dark:text-primary-400">HRIS</h1>
+      <h1 v-else class="text-3xl font-bold text-primary-600 dark:text-primary-400">Printly</h1>
     </div>
 
     <!-- Content card -->
