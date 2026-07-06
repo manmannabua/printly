@@ -7,6 +7,7 @@ import { initDarkMode } from '@/composables/useDarkMode'
 import '@fontsource-variable/bricolage-grotesque'
 import '@fontsource-variable/hanken-grotesk'
 import '@/assets/main.css'
+import '@/pwa'
 
 // Apply dark mode before app mounts to avoid flash
 initDarkMode()
